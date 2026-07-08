@@ -24,7 +24,14 @@ const userSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Car",
         default:null
-    }
+    },
+    Phone:
+    {
+        type:Number,
+        required:true,
+        unique:true
+    },
+
 },{timestamps:true})
 
 module.exports = mongoose.model("User", userSchema);
