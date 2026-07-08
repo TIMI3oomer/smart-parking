@@ -12,6 +12,22 @@ const carSchema = new mongoose.Schema({
         type: String,
         required:true,
         unique:true
-    }
-    
-})
+    },
+    color:
+    {
+        type:String
+    },
+    photo:
+    {
+        type:String,
+    },
+    owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        required:true,
+    },
+
+
+},{timestamps:true})
+
+module.exports = mongoose.model("Car", carSchema);
