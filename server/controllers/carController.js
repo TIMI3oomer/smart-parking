@@ -1,9 +1,8 @@
 const Car =require("../models/Car");
 
-const normalizeCreatpayload = (paload = {}) =>
+const normalizeCreatePayload = (payload = {}) =>
     {
-        const normalized = 
-        {
+        const normalized ={
             Type: payload.Type,
             plate: payload.plate,
             color: payload.color,
@@ -28,22 +27,21 @@ const normalizeUpdatePayload = (payload = {}) => {
     const update = {}; 
     const unset = {};
 
-    if(Object.prototype.hasOwnProperty.call(payload,"Type"))
-        {
+    if(Object.keys(updatePayload).length === 0){
+        return res.status(400).json({message:"No fields to updated"});
+    }
+    if(Object.prototype.hasOwnProperty.call(payload,"Type")){
             update.Type = payload.Type;
-        }
-    if(Object.prototype.hasOwnProperty.call(payload,"plate"))
-        {
+    }
+    if(Object.prototype.hasOwnProperty.call(payload,"plate")){
             update.plate = payload.plate;
-        }
-    if(Object.prototype.hasOwnProperty.call(payload,"color"))
-        {
+    }
+    if(Object.prototype.hasOwnProperty.call(payload,"color")){
             update.color = payload.color;
-        }
-    if(Object.prototype.hasOwnProperty.call(payload,"photo"))
-        {
+    }
+    if(Object.prototype.hasOwnProperty.call(payload,"photo")){
             update.photo = payload.photo;
-        }
+    }
     if(Object.prototype.hasOwnProperty.call(payload,"owner")){
         if(typeof payload.owner === "string")
             {
@@ -89,24 +87,24 @@ const getAllCars = async (req,res) =>
     const createCar = async(req,res) => 
         {
             try {
-                const car = new Car(normalizeCreatpayload(req.body));
+                const car = new Car(normalizeCreatePayload(req.body));
                 await car.save();
                 res.status(201).json(car);
             }
-            catch
+            catch(error)
             {
                 res.status(500).json({message:error.message});
             }
         };
 
 
-        const updateCar = async(req,res) => 
+        const updateCar = async(req,res) =>
             {
                 try
                 {
                     const updatePayload = normalizeUpdatePayload(req.body);
 
-                    const car = await car.findByIdAndUpdate(
+                    const car = await Car.findByIdAndUpdate(
                         req.params.id,
                         updatePayload,
                         {new:true}
@@ -128,7 +126,7 @@ const getAllCars = async (req,res) =>
             const deleteCar = async (req,res) =>
                 {
                     try {
-                    const car = await car.findByIdAndDelete(req.params.id);
+                    const car = await Car.findByIdAndDelete(req.params.id);
 
                     if(!car)
                         {
@@ -146,9 +144,9 @@ const getAllCars = async (req,res) =>
                     {
                         try
                         {
-                            const {plateNumber}=req.params ;
+                            const {plate}=req.params ;
 
-                            const car = await Car.findOne({plateNumber});
+                            const car = await Car.findOne({plate}).populate("owner","name Phone");
                             if(!car)
                                 {
                                     return res.status(404).json({message:"Car not found"});
