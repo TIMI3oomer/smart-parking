@@ -59,7 +59,7 @@ const normalizeUpdatePayload = (payload = {}) => {
                 unset.owner = "";
             }
     }
-    const normalized ;
+    const normalized = {} ;
 
     if(Object.keys(update).length)
         {
