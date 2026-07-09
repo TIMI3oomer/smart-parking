@@ -1,33 +1,26 @@
 const mongoose = require("mongoose");
 
 const carSchema = new mongoose.Schema({
-
-    Type:
-    {
-        type: String ,
-        required: true ,
-    },
-    plate:
-    {
+    type: {
         type: String,
-        required:true,
-        unique:true
+        required: true,
     },
-    color:
-    {
-        type:String
+    plate: {
+        type: String,
+        required: true,
+        unique: true,
     },
-    photo:
-    {
-        type:String,
+    color: {
+        type: String,
     },
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true,
+    photo: {
+        type: String,
     },
-
-
-},{timestamps:true})
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+}, { timestamps: true });
 
 module.exports = mongoose.model("Car", carSchema);
