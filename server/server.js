@@ -6,12 +6,14 @@ app.use(express.json());
 
 const userRoutes = require("./routes/userRoutes");
 const carRoutes = require("./routes/carRoutes");
-
+const authRoutes = require("./routes/authRoutes");
+const slotRoutes= require("./routes/slotRoutes");
 connectDB();
 
 app.use("/users", userRoutes);
 app.use("/cars", carRoutes);
-
+app.use("/slot",slotRoutes);
+app.use("/api/auth",authRoutes);
 app.listen(3000, () => {
     console.log("Server is running on http://localhost:3000");
 });

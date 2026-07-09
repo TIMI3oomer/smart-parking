@@ -3,14 +3,17 @@ const router = express.Router();
 
 const {getAllCars,getCarByPlate,updateCar,deleteCar,createCar} =require("../controllers/carController");
 const { create } = require("node:domain");
+const { protect } = require("../middleware/authMiddleware");
+const { requireAdmin } = require("../middleware/roleMiddleware");
 
-router.get("/",getAllCars);
-router.get("/plate/:plate",getCarByPlate);
+router.get("/",protect,getAllCars);
 
-router.post("/",createCar);
+router.get("/plate/:plate",protect,getCarByPlate);
 
-router.put("/:id",updateCar);
+router.post("/",protect,requireAdmin,createCar);
 
-router.delete("/:id",deleteCar);
+router.put("/:id",protect,requireAdmin,updateCar);
+
+router.delete("/:id",protect,requireAdmin,deleteCar);
 
 module.exports= router;

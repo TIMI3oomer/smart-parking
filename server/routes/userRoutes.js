@@ -2,14 +2,16 @@ const express =require("express");
 const router =express.Router();
 
 const{getAllUsers,getUserByPhone,deleteUser,updateUser,createUser}= require("../controllers/userController");
+const { protect } = require("../middleware/authMiddleware");
+const { requireAdmin } = require("../middleware/roleMiddleware");
 
-router.get("/",getAllUsers);
-router.get("/Phone/:Phone",getUserByPhone);
+router.get("/",protect,requireAdmin,getAllUsers);
+router.get("/Phone/:Phone",protect,getUserByPhone);
 
-router.put("/:id",updateUser);
+router.put("/:id",protect,updateUser);
 
 router.post("/",createUser);
 
-router.delete("/:id",deleteUser)
+router.delete("/:id",protect,requireAdmin,deleteUser)
 
 module.exports = router ;

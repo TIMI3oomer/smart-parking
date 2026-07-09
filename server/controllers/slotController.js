@@ -113,6 +113,13 @@ const createSlot = async (req, res) => {
 
 const updateSlot = async (req, res) => {
     try {
+        const isOwner = req.user.id === req.params.id;
+        const isAdmin = req.user.role === "admin";
+
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ message: "You can only update your own profile" });
+        }
+
         const updatePayload = normalizeUpdatePayload(req.body);
 
         if (!updatePayload.$set && !updatePayload.$unset) {
