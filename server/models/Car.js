@@ -1,19 +1,16 @@
 const mongoose = require("mongoose");
 
 const carSchema = new mongoose.Schema({
-    type: {
+    model: {
         type: String,
         required: true,
-    },
+    },  
     plate: {
         type: String,
         required: true,
         unique: true,
     },
     color: {
-        type: String,
-    },
-    photo: {
         type: String,
     },
     owner: {

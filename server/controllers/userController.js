@@ -57,7 +57,7 @@ const normalizeUpdatePayload = (payload = {}) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find(); // password excluded by select:false
+        const users = await User.find();
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
