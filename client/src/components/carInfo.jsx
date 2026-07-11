@@ -5,54 +5,38 @@ const carInfo =({slot,onClose,onReserve , onFree,currentUserId})=>{
     const isMine = car?.owner?.id === currentUserId ; 
 
     return(
-        <div style={overlayStyle}>
-            <div style={modalStyle}>
-                <h3>Slot : {slot.slotNumber}</h3>
-                <p>Status:{slot.status}</p>
+        <div className="slot-modal__backdrop">
+            <div className="slot-modal__content">
+                <h3 className="slot-modal__title">Slot: {slot.slotNumber}</h3>
+                <p className="slot-modal__meta">Status: {slot.status}</p>
 
                 {car ? (
                     <>
-                    <p><strong>Car:</strong>{car.type}({car.color})</p>
-                    <p><strong>Plate:</strong>{car.plate}</p>
-                    <p><strong>Owner:</strong>{car.owner?.name}</p>
-                    <p><strong>Phone:</strong>{car.owner?.Phone}</p>
+                    <p className="slot-modal__section"><strong>Car:</strong> {car.type} ({car.color})</p>
+                    <p className="slot-modal__section"><strong>Plate:</strong> {car.plate}</p>
+                    <p className="slot-modal__section"><strong>Owner:</strong> {car.owner?.name}</p>
+                    <p className="slot-modal__section"><strong>Phone:</strong> {car.owner?.Phone}</p>
                     </>
                 ): slot.reservedFor ?(
-                    <p><strong>Reserved for :</strong>{slot.reservedFor.name}</p>
+                    <p className="slot-modal__section"><strong>Reserved for:</strong> {slot.reservedFor.name}</p>
                 ):(
-                    <p>This slot is empty.</p>
+                    <p className="slot-modal__section">This slot is empty.</p>
                 )}
 
-                <div style={{marginTop:"1rem"}}>{
+                <div className="slot-actions">{
                     slot.status ==="empty" && (
-                        <button onClick={()=> onReserve(slot)}>Reserve this slot</button>
+                        <button className="btn btn--primary" onClick={()=> onReserve(slot)}>Reserve this slot</button>
                     )}
                     {isMine &&(
-                        <button onClick={()=> onFree(slot)}>Free my slot</button>
+                        <button className="btn btn--danger" onClick={()=> onFree(slot)}>Free my slot</button>
                     )}
-                    <button onClick={onClose} style={{marginLeft:"0.5rem"}}>
+                    <button className="btn btn--ghost" onClick={onClose}>
                         Close
                     </button>
                 </div>
             </div>
         </div>
     );
-};
-
-const overlayStyle = {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.5)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-};
-
-const modalStyle = {
-    background: "white",
-    padding: "1.5rem",
-    borderRadius: "8px",
-    minWidth: "300px",
 };
 
 export default carInfo ; 

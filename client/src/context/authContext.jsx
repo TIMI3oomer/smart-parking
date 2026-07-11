@@ -1,4 +1,4 @@
-import { createContext,useContext,useState } from "react";
+import { createContext,useState } from "react";
 import api from "../service/api";
 
 const AuthContext = createContext();
@@ -12,7 +12,7 @@ export const AuthProvider =({children })=>{
         const res =await api.post("/auth/login",{email,password});
         localStorage.setItem("token",res.data.token);
         localStorage.setItem("user",JSON.stringify(res.data.user));
-        setUser(res.date.user);
+        setUser(res.data.user);
     };
 
     const logout =async () =>{
@@ -27,4 +27,4 @@ export const AuthProvider =({children })=>{
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export { AuthContext };

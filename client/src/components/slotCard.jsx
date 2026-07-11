@@ -1,24 +1,11 @@
-const statusColors = {
-    empty: "#c8e6c9",
-    occupied: "#ffcdd2",
-    reserved: "#fff9c4",
-};
-
 const SlotCard = ({ slot, onClick }) => {
     return (
         <div
             onClick={() => onClick(slot)}
-            style={{
-                background: statusColors[slot.status] || "#eee",
-                border: "1px solid #999",
-                borderRadius: "8px",
-                padding: "1rem",
-                cursor: "pointer",
-                textAlign: "center",
-            }}
+            className={`slot-card slot-card--${slot.status || "empty"}`}
         >
-            <strong>{slot.slotNumber}</strong>
-            <p style={{ margin: "0.3rem 0 0", fontSize: "0.85rem" }}>
+            <strong className="slot-card__number">{slot.slotNumber}</strong>
+            <p className="slot-card__status">
                 {slot.status}
             </p>
         </div>
