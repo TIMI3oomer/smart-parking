@@ -1,56 +1,68 @@
-import { useEffect,useState } from "react";
-import api from "../service/api"
+import { useCallback, useEffect, useState } from "react";
+import api from "../service/api";
 import { useAuth } from "../context/authContext";
-import ParkingGrid from "../components/parkingGrid";
+import ParkingGrid from "../components/ParkingGrid";
 import CarInfo from "../components/carInfo";
 
 const Dashboard = () => {
     const [slots, setSlots] = useState([]);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const { user, logout } = useAuth();
 
-    useEffect(() => {
-        const loadSlots = async () => {
-            try {
-                const res = await api.get("/slot");
-                setSlots(res.data);
-            } catch {
-                setError("Failed to load parking slots");
-            }
-        };
-
-        void loadSlots();
+    const loadSlots = useCallback(async () => {
+        try {
+            const res = await api.get("/slot");
+            setSlots(Array.isArray(res.data) ? res.data : []);
+            setError("");
+        } catch {
+            setError("Failed to load parking slots");
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
+    useEffect(() => {
+        void loadSlots();
+    }, [loadSlots]);
+
     const handleReserve = async (slot) => {
+        setSubmitting(true);
+        setError("");
         try {
-            await api.put(`/slot/${slot._id}`, {
-                status: "reserved",
-                reservedFor: user?._id,
-            });
+            await api.put(`/slot/${slot._id}/reserve`);
             setSelectedSlot(null);
-            void (async () => {
-                const res = await api.get("/slot");
-                setSlots(res.data);
-            })();
+            await loadSlots();
         } catch (err) {
             setError(err.response?.data?.message || "Could not reserve slot");
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleFree = async (slot) => {
+        setSubmitting(true);
+        setError("");
         try {
             await api.put(`/slot/${slot._id}/free`);
             setSelectedSlot(null);
-            void (async () => {
-                const res = await api.get("/slot");
-                setSlots(res.data);
-            })();
+            await loadSlots();
         } catch (err) {
             setError(err.response?.data?.message || "Could not free slot");
+        } finally {
+            setSubmitting(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="page-shell">
+                <p>Loading…</p>
+            </div>
+        );
+    }
 
     return (
         <div className="page-shell">
@@ -61,15 +73,16 @@ const Dashboard = () => {
                 </div>
                 <button className="btn btn--ghost" onClick={logout}>Logout</button>
             </div>
-            {error && <p className="page-error">{error}</p>}
-            <ParkingGrid slots={slots} onSlotClick={setSelectedSlot}/>
+            {error && <p className="page-error" role="alert">{error}</p>}
+            <ParkingGrid slots={slots} onSlotClick={setSelectedSlot} />
 
             <CarInfo
                 slot={selectedSlot}
                 onClose={() => setSelectedSlot(null)}
                 onReserve={handleReserve}
                 onFree={handleFree}
-                currentUserId={user?.id}
+                currentUserId={user?._id ?? user?.id}
+                disabled={submitting}
             />
         </div>
     );

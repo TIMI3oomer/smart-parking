@@ -1,58 +1,22 @@
 const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
 const User = require("../models/User");
 
-const normalizeCreatePayload = (payload = {}) => {
-    const normalized = {
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-        Phone: payload.Phone,
-        role: "employee",
-    };
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-    if (typeof payload.car === "string") {
-        const trimmedCar = payload.car.trim();
-        if (trimmedCar) normalized.car = trimmedCar;
-    } else if (payload.car) {
-        normalized.car = payload.car;
+const handleServerError = (res, error, fallback = "Something went wrong") => {
+    console.error(error);
+    if (error.code === 11000) {
+        const field = Object.keys(error.keyPattern || {})[0] || "field";
+        return res.status(409).json({ message: `That ${field} is already in use` });
     }
-
-    return normalized;
-};
-
-const normalizeUpdatePayload = (payload = {}) => {
-    const update = {};
-    const unset = {};
-
-    if (Object.prototype.hasOwnProperty.call(payload, "name")) {
-        update.name = payload.name;
+    if (error.name === "CastError") {
+        return res.status(400).json({ message: "Invalid id format" });
     }
-    if (Object.prototype.hasOwnProperty.call(payload, "email")) {
-        update.email = payload.email;
+    if (error.name === "ValidationError") {
+        return res.status(400).json({ message: "Invalid input" });
     }
-    if (Object.prototype.hasOwnProperty.call(payload, "Phone")) {
-        update.Phone = payload.Phone;
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "car")) {
-        if (typeof payload.car === "string") {
-            const trimmedCar = payload.car.trim();
-            if (trimmedCar) {
-                update.car = trimmedCar;
-            } else {
-                unset.car = "";
-            }
-        } else if (payload.car) {
-            update.car = payload.car;
-        } else {
-            unset.car = "";
-        }
-    }
-
-    const normalized = {};
-    if (Object.keys(update).length) normalized.$set = update;
-    if (Object.keys(unset).length) normalized.$unset = unset;
-
-    return normalized;
+    return res.status(500).json({ message: fallback });
 };
 
 const getAllUsers = async (req, res) => {
@@ -60,88 +24,108 @@ const getAllUsers = async (req, res) => {
         const users = await User.find();
         res.json(users);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Failed to load users");
     }
 };
 
+const getUserByPhone = async (req, res) => {
+    try {
+        const user = await User.findOne({ Phone: req.params.Phone });
+        if (!user) {
+            return res.status(404).json({ message: "user not found" });
+        }
+        res.json(user);
+    } catch (error) {
+        handleServerError(res, error, "Failed to load user");
+    }
+};
 const createUser = async (req, res) => {
     try {
-        const data = normalizeCreatePayload(req.body);
-        data.password = await bcrypt.hash(data.password, 10);
+        const { name, email, password, Phone } = req.body;
 
-        const user = new User(data);
-        await user.save();
-
-        const safeUser = user.toObject();
-        delete safeUser.password;
-
-        res.status(201).json(safeUser);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const updateUser = async (req, res) => {
-    try {
-        const isOwner =req.user.id === req.params.id;
-        const isAdmin =req.user.role === "admin";
-
-        if(!isOwner && isAdmin)
-            {
-                return res.status(403).json({messsage:"You can only update your own profile"});
-            }
-        const updatePayload = normalizeUpdatePayload(req.body);
-
-        if (!updatePayload.$set && !updatePayload.$unset) {
-            return res.status(400).json({ message: "No fields to update" });
+        if (!name || !email || !password || !Phone) {
+            return res.status(400).json({ message: "name, email, password, and Phone are required" });
+        }
+        if (typeof password !== "string" || password.length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters" });
         }
 
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            updatePayload,
-            { new: true }
-        );
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        const user = new User({
+            name: String(name).trim(),
+            email: String(email).trim().toLowerCase(),
+            password: hashedPassword,
+            Phone: String(Phone).trim(),
+            role: "employee",
+        });
+
+        await user.save();
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            Phone: user.Phone,
+            role: user.role,
+        });
+    } catch (error) {
+        handleServerError(res, error, "Could not create user");
+    }
+};
+const updateUser = async (req, res) => {
+    try {
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid user id" });
+        }
+
+        const isAdmin = req.user.role === "admin";
+        const isSelf = req.user.id === req.params.id;
+
+        if (!isAdmin && !isSelf) {
+            return res.status(403).json({ message: "You can only update your own profile" });
+        }
+
+        const update = {};
+        if (req.body.name) update.name = String(req.body.name).trim();
+        if (req.body.Phone) update.Phone = String(req.body.Phone).trim();
+        if (isAdmin && req.body.role) update.role = req.body.role;
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: "No valid fields to update" });
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, update, {
+            new: true,
+            runValidators: true,
+        });
 
         if (!user) {
             return res.status(404).json({ message: "user not found" });
         }
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Could not update user");
     }
 };
 
 const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid user id" });
+        }
+        if (req.user.id === req.params.id) {
+            return res.status(400).json({ message: "You cannot delete your own account" });
+        }
 
+        const user = await User.findByIdAndDelete(req.params.id);
         if (!user) {
             return res.status(404).json({ message: "user not found" });
         }
         res.json({ message: "user deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Could not delete user");
     }
 };
 
-const getUserByPhone = async (req, res) => {
-    try {
-        const { Phone } = req.params;
-
-        const user = await User.findOne({ Phone });
-        if (!user) {
-            return res.status(404).json({ message: "user not found" });
-        }
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-module.exports = {
-    getAllUsers,
-    getUserByPhone,
-    createUser,
-    updateUser,
-    deleteUser,
-};
+module.exports = { getAllUsers, getUserByPhone, deleteUser, updateUser, createUser };

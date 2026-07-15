@@ -1,10 +1,8 @@
-const jwt = require("jsonwebtoken");
-
-const requireAdmin = (req,res,next) =>{
-    if(req.user.role !=="admin"){
-        return res.status(403).json({message:"Admins only"});
+const requireAdmin = (req, res, next) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ message: "Admins only" });
     }
     next();
 };
 
-module.exports = {requireAdmin};
+module.exports = { requireAdmin };

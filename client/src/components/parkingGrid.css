@@ -1,0 +1,6 @@
+.parking-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+}

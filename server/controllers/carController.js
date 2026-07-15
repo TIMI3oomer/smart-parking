@@ -1,59 +1,22 @@
+const mongoose = require("mongoose");
 const Car = require("../models/Car");
+const User = require("../models/User");
+const Slot = require("../models/ParkingSlot");
 
-const normalizeCreatePayload = (payload = {}) => {
-    const normalized = {
-        type: payload.type,
-        plate: payload.plate,
-        color: payload.color,
-        photo: payload.photo,
-    };
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-    if (typeof payload.owner === "string") {
-        const trimmedOwner = payload.owner.trim();
-        if (trimmedOwner) normalized.owner = trimmedOwner;
-    } else if (payload.owner) {
-        normalized.owner = payload.owner;
+const handleServerError = (res, error, fallback = "Something went wrong") => {
+    console.error(error);
+    if (error.code === 11000) {
+        return res.status(409).json({ message: "A car with that plate already exists" });
     }
-
-    return normalized;
-};
-
-const normalizeUpdatePayload = (payload = {}) => {
-    const update = {};
-    const unset = {};
-
-    if (Object.prototype.hasOwnProperty.call(payload, "type")) {
-        update.type = payload.type;
+    if (error.name === "CastError") {
+        return res.status(400).json({ message: "Invalid id format" });
     }
-    if (Object.prototype.hasOwnProperty.call(payload, "plate")) {
-        update.plate = payload.plate;
+    if (error.name === "ValidationError") {
+        return res.status(400).json({ message: "Invalid input" });
     }
-    if (Object.prototype.hasOwnProperty.call(payload, "color")) {
-        update.color = payload.color;
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "photo")) {
-        update.photo = payload.photo;
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "owner")) {
-        if (typeof payload.owner === "string") {
-            const trimmedOwner = payload.owner.trim();
-            if (trimmedOwner) {
-                update.owner = trimmedOwner;
-            } else {
-                unset.owner = "";
-            }
-        } else if (payload.owner) {
-            update.owner = payload.owner;
-        } else {
-            unset.owner = "";
-        }
-    }
-
-    const normalized = {};
-    if (Object.keys(update).length) normalized.$set = update;
-    if (Object.keys(unset).length) normalized.$unset = unset;
-
-    return normalized;
+    return res.status(500).json({ message: fallback });
 };
 
 const getAllCars = async (req, res) => {
@@ -61,81 +24,112 @@ const getAllCars = async (req, res) => {
         const cars = await Car.find().populate("owner", "name Phone");
         res.json(cars);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Failed to load cars");
+    }
+};
+
+const getCarByPlate = async (req, res) => {
+    try {
+        const car = await Car.findOne({ plate: req.params.plate }).populate("owner", "name Phone");
+        if (!car) {
+            return res.status(404).json({ message: "car not found" });
+        }
+        res.json(car);
+    } catch (error) {
+        handleServerError(res, error, "Failed to load car");
     }
 };
 
 const createCar = async (req, res) => {
     try {
-        const car = new Car(normalizeCreatePayload(req.body));
+        const { model, plate, color, owner } = req.body;
+
+        if (!model || !plate || !owner) {
+            return res.status(400).json({ message: "model, plate, and owner are required" });
+        }
+        if (!isValidId(owner)) {
+            return res.status(400).json({ message: "Invalid owner id" });
+        }
+
+        const ownerExists = await User.exists({ _id: owner });
+        if (!ownerExists) {
+            return res.status(404).json({ message: "owner user not found" });
+        }
+
+        const car = new Car({
+            model: String(model).trim(),
+            plate: String(plate).trim().toUpperCase(),
+            color: color ? String(color).trim() : undefined,
+            owner,
+        });
         await car.save();
-        res.status(201).json(car);
+
+        const populated = await car.populate("owner", "name Phone");
+        res.status(201).json(populated);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Could not create car");
     }
 };
 
 const updateCar = async (req, res) => {
     try {
-        const isOwner = req.user.id === req.params.id;
-        const isAdmin = req.user.role === "admin";
-
-        if (!isOwner && !isAdmin) {
-            return res.status(403).json({ message: "You can only update your own profile" });
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid car id" });
         }
 
-        const updatePayload = normalizeUpdatePayload(req.body);
-
-        if (!updatePayload.$set && !updatePayload.$unset) {
-            return res.status(400).json({ message: "No fields to update" });
+        const update = {};
+        if (req.body.model) update.model = String(req.body.model).trim();
+        if (req.body.plate) update.plate = String(req.body.plate).trim().toUpperCase();
+        if (req.body.color) update.color = String(req.body.color).trim();
+        if (req.body.owner) {
+            if (!isValidId(req.body.owner)) {
+                return res.status(400).json({ message: "Invalid owner id" });
+            }
+            const ownerExists = await User.exists({ _id: req.body.owner });
+            if (!ownerExists) {
+                return res.status(404).json({ message: "owner user not found" });
+            }
+            update.owner = req.body.owner;
         }
 
-        const car = await Car.findByIdAndUpdate(
-            req.params.id,
-            updatePayload,
-            { new: true }
-        ).populate("owner", "name Phone");
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: "No valid fields to update" });
+        }
+
+        const car = await Car.findByIdAndUpdate(req.params.id, update, {
+            new: true,
+            runValidators: true,
+        }).populate("owner", "name Phone");
 
         if (!car) {
             return res.status(404).json({ message: "car not found" });
         }
         res.json(car);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Could not update car");
     }
 };
 
 const deleteCar = async (req, res) => {
     try {
-        const car = await Car.findByIdAndDelete(req.params.id);
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid car id" });
+        }
+        const parkedIn = await Slot.findOne({ currentCar: req.params.id });
+        if (parkedIn) {
+            return res.status(409).json({
+                message: `Free slot ${parkedIn.slotNumber} before deleting this car`,
+            });
+        }
 
+        const car = await Car.findByIdAndDelete(req.params.id);
         if (!car) {
             return res.status(404).json({ message: "car not found" });
         }
         res.json({ message: "car deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleServerError(res, error, "Could not delete car");
     }
 };
 
-const getCarByPlate = async (req, res) => {
-    try {
-        const { plate } = req.params;
-
-        const car = await Car.findOne({ plate }).populate("owner", "name Phone");
-        if (!car) {
-            return res.status(404).json({ message: "Car not found" });
-        }
-        res.status(200).json(car);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-module.exports = {
-    getAllCars,
-    getCarByPlate,
-    createCar,
-    updateCar,
-    deleteCar,
-};
+module.exports = { getAllCars, getCarByPlate, updateCar, deleteCar, createCar };
