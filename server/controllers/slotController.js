@@ -18,6 +18,9 @@ const normalizeCreatePayload = (payload = {}) => {
     const normalized = {
         slotNumber: payload.slotNumber,
         status: payload.status,
+        section: typeof payload.section === "string" && payload.section.trim()
+            ? payload.section.trim()
+            : "Main Area",
     };
 
     if (payload.floor !== undefined && payload.floor !== null && payload.floor !== "") {
@@ -53,6 +56,10 @@ const normalizeUpdatePayload = (payload = {}) => {
     }
     if (Object.prototype.hasOwnProperty.call(payload, "status")) {
         update.status = payload.status;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "section")) {
+        const section = typeof payload.section === "string" ? payload.section.trim() : "";
+        if (section) update.section = section;
     }
     if (Object.prototype.hasOwnProperty.call(payload, "floor")) {
         const floorNumber = Number(payload.floor);

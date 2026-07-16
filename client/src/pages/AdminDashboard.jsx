@@ -26,6 +26,7 @@ const AdminDashboard = () => {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [newSlotNumber, setNewSlotNumber] = useState("");
     const [newSlotFloor, setNewSlotFloor] = useState("1");
+    const [newSlotSection, setNewSlotSection] = useState("Main Area");
     const [newUser, setNewUser] = useState(createUserInitialState);
     const [newCar, setNewCar] = useState(createCarInitialState);
     const [activeCreateForm, setActiveCreateForm] = useState("slot");
@@ -63,6 +64,7 @@ const AdminDashboard = () => {
     const handleCreateSlot = async (e) => {
         e.preventDefault();
         const trimmed = newSlotNumber.trim();
+        const section = newSlotSection.trim();
 
         if (!trimmed) {
             setError("Slot number can't be empty");
@@ -70,6 +72,10 @@ const AdminDashboard = () => {
         }
         if (!/^[A-Za-z0-9-]{1,10}$/.test(trimmed)) {
             setError("Slot number can only contain letters, numbers, and hyphens (max 10 chars)");
+            return;
+        }
+        if (!section || section.length > 30) {
+            setError("Section must be between 1 and 30 characters");
             return;
         }
         if (slots.some((s) => s.slotNumber?.toLowerCase() === trimmed.toLowerCase())) {
@@ -86,9 +92,10 @@ const AdminDashboard = () => {
         setSubmitting(true);
         setError("");
         try {
-            await api.post("/slot", { slotNumber: trimmed, floor: floorNumber });
+            await api.post("/slot", { slotNumber: trimmed, floor: floorNumber, section });
             setNewSlotNumber("");
             setNewSlotFloor("1");
+            setNewSlotSection("Main Area");
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "Could not create slot"));
@@ -176,6 +183,26 @@ const AdminDashboard = () => {
             setSubmitting(false);
         }
     };
+    const handleChangeSection = async (slot, sectionValue) => {
+        const section = sectionValue.trim();
+        if (!section || section.length > 30) {
+            setError("Section must be between 1 and 30 characters");
+            return;
+        }
+        if (section === (slot.section || "Main Area")) return;
+
+        setSubmitting(true);
+        setError("");
+        try {
+            await api.put(`/slot/${slot._id}`, { section });
+            await fetchData();
+        } catch (err) {
+            setError(getErrorMessage(err, "Could not move slot to section"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const handleChangeFloor = async (slot, floorValue) => {
         const floorNumber = Number(floorValue);
         if (!Number.isInteger(floorNumber) || floorNumber < 1) {
@@ -307,7 +334,7 @@ const AdminDashboard = () => {
             <div className="page-header">
                 <div>
                     <h2 className="page-title">Admin Dashboard — {user?.name}</h2>
-                    <p className="page-subtitle">Create slots, assign cars, and clear spaces.</p>
+                    <p className="page-subtitle">Create slots, organize garage sections, assign cars, and clear spaces.</p>
                 </div>
                 <button className="btn btn--ghost" onClick={logout}>Logout</button>
             </div>
@@ -382,6 +409,19 @@ const AdminDashboard = () => {
                                     onChange={(e) => setNewSlotFloor(e.target.value)}
                                     disabled={submitting}
                                 />
+                            </div>
+                            <div className="field-group">
+                                <label htmlFor="slot-section" className="field-label">Garage section</label>
+                                <input
+                                    id="slot-section"
+                                    className="input"
+                                    placeholder="e.g. North Wing"
+                                    maxLength={30}
+                                    value={newSlotSection}
+                                    onChange={(e) => setNewSlotSection(e.target.value)}
+                                    disabled={submitting}
+                                />
+                                <span className="field-hint">Use a section name for split or irregular areas.</span>
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
                                 {submitting ? "Creating…" : "Create Slot"}
@@ -507,6 +547,23 @@ const AdminDashboard = () => {
                     <h4 className="page-title page-title--compact">
                         Manage Slot {selectedSlot.slotNumber}
                     </h4>
+
+                    <div className="field-group">
+                        <label htmlFor="slot-section-edit" className="field-label">Garage section</label>
+                        <input
+                            id="slot-section-edit"
+                            className="input"
+                            maxLength={30}
+                            defaultValue={selectedSlot.section || "Main Area"}
+                            key={`${selectedSlot._id}-section`}
+                            onBlur={(e) => handleChangeSection(selectedSlot, e.target.value)}
+                            disabled={submitting}
+                            aria-describedby="slot-section-edit-hint"
+                        />
+                        <span id="slot-section-edit-hint" className="field-hint">
+                            Change and click elsewhere to reorganize this slot
+                        </span>
+                    </div>
 
                     <div className="field-group">
                         <label htmlFor="slot-floor-edit" className="field-label">Floor</label>

@@ -14,6 +14,12 @@ const slotSchema = new mongoose.Schema(
             default: 1,
             min: 1,
         },
+        section: {
+            type: String,
+            trim: true,
+            maxlength: 30,
+            default: "Main Area",
+        },
         status: {
             type: String,
             enum: ["empty", "reserved", "occupied"],
