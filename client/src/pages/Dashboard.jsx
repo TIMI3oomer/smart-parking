@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
-import ParkingGrid from "../components/ParkingGrid";
+import ParkingGrid from "../components/parkingGrid";
 import CarInfo from "../components/carInfo";
 
 const Dashboard = () => {

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import SlotCard from "./SlotCard";
+import SlotCard from "./slotCard";
 
 const ParkingGrid = ({ slots, onSlotClick }) => {
     const floors = useMemo(() => {

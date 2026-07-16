@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
-import ParkingGrid from "../components/ParkingGrid";
+import ParkingGrid from "../components/parkingGrid";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
@@ -350,7 +350,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="admin-actions__form">
-                    <h3 className="page-title" style={{ fontSize: "1.1rem" }}>{createFormTitle}</h3>
+                    <h3 className="page-title page-title--compact">{createFormTitle}</h3>
 
                     {activeCreateForm === "slot" && (
                         <form onSubmit={handleCreateSlot} className="slot-form">
@@ -374,14 +374,13 @@ const AdminDashboard = () => {
                                 </label>
                                 <input
                                     id="slot-floor"
-                                    className="input"
+                                    className="input input--floor-number"
                                     type="number"
                                     min="1"
                                     step="1"
                                     value={newSlotFloor}
                                     onChange={(e) => setNewSlotFloor(e.target.value)}
                                     disabled={submitting}
-                                    style={{ maxWidth: "6rem" }}
                                 />
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
@@ -505,7 +504,7 @@ const AdminDashboard = () => {
 
             {selectedSlot && (
                 <div className="panel panel--padded">
-                    <h4 className="page-title" style={{ fontSize: "1.1rem" }}>
+                    <h4 className="page-title page-title--compact">
                         Manage Slot {selectedSlot.slotNumber}
                     </h4>
 
@@ -513,7 +512,7 @@ const AdminDashboard = () => {
                         <label htmlFor="slot-floor-edit" className="field-label">Floor</label>
                         <input
                             id="slot-floor-edit"
-                            className="input"
+                            className="input input--floor-number"
                             type="number"
                             min="1"
                             step="1"
@@ -521,7 +520,6 @@ const AdminDashboard = () => {
                             key={selectedSlot._id}
                             onBlur={(e) => handleChangeFloor(selectedSlot, e.target.value)}
                             disabled={submitting}
-                            style={{ maxWidth: "6rem" }}
                             aria-describedby="slot-floor-edit-hint"
                         />
                         <span id="slot-floor-edit-hint" className="field-hint">
@@ -579,7 +577,7 @@ const AdminDashboard = () => {
                 </div>
             )}
             <div className="panel panel--padded stack">
-                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>Cars</h3>
+                <h3 className="page-title page-title--compact">Cars</h3>
                 {cars.length === 0 ? (
                     <p className="page-subtitle">No cars yet.</p>
                 ) : (
@@ -606,7 +604,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="panel panel--padded stack">
-                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>Users</h3>
+                <h3 className="page-title page-title--compact">Users</h3>
                 {users.length === 0 ? (
                     <p className="page-subtitle">No users yet.</p>
                 ) : (
