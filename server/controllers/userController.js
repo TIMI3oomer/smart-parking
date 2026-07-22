@@ -30,7 +30,7 @@ const getAllUsers = async (req, res) => {
 
 const getUserByPhone = async (req, res) => {
     try {
-        const user = await User.findOne({ Phone: req.params.Phone });
+        const user = await User.findOne({ phone: req.params.phone });
         if (!user) {
             return res.status(404).json({ message: "المستخدم غير موجود" });
         }
@@ -41,9 +41,9 @@ const getUserByPhone = async (req, res) => {
 };
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, Phone } = req.body;
+        const { name, email, password,phone } = req.body;
 
-        if (!name || !email || !password || !Phone) {
+        if (!name || !email || !password || !phone) {
             return res.status(400).json({ message: "الاسم والبريد الإلكتروني وكلمة المرور ورقم الهاتف مطلوبة" });
         }
         if (typeof password !== "string" || password.length < 8) {
@@ -56,7 +56,7 @@ const createUser = async (req, res) => {
             name: String(name).trim(),
             email: String(email).trim().toLowerCase(),
             password: hashedPassword,
-            Phone: String(Phone).trim(),
+            phone: String(phone).trim(),
             role: "employee",
         });
 
@@ -66,7 +66,7 @@ const createUser = async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
-            Phone: user.Phone,
+            phone: user.phone,
             role: user.role,
         });
     } catch (error) {
@@ -88,7 +88,7 @@ const updateUser = async (req, res) => {
 
         const update = {};
         if (req.body.name) update.name = String(req.body.name).trim();
-        if (req.body.Phone) update.Phone = String(req.body.Phone).trim();
+        if (req.body.phone) update.phone = String(req.body.phone).trim();
         if (isAdmin && req.body.role) update.role = req.body.role;
 
         if (Object.keys(update).length === 0) {

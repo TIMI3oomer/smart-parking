@@ -4,6 +4,7 @@ import { useAuth } from "./context/useAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import Register from "./pages/Register";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
     const { user } = useAuth();
@@ -18,6 +19,7 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />}/>
                     <Route
                         path="/dashboard"
                         element={

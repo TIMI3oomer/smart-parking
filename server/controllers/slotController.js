@@ -295,8 +295,6 @@ const freeSlot = async (req, res) => {
             return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
-        // FIX: populate currentCar's owner so we can check ownership of
-        // an assigned car, not just a reservation.
         const slot = await Slot.findById(req.params.id).populate({
             path: "currentCar",
             select: "owner",
@@ -308,10 +306,6 @@ const freeSlot = async (req, res) => {
 
         const isAdmin = req.user.role === "admin";
         const isReservedByMe = slot.reservedFor?.toString() === req.user.id;
-        // FIX: previously only `reservedFor` was checked, so a user whose
-        // car had been *assigned* by an admin (which never sets
-        // reservedFor) could never free their own slot — the API always
-        // returned 403 for them.
         const isMyAssignedCar = slot.currentCar?.owner?.toString() === req.user.id;
 
         if (!isAdmin && !isReservedByMe && !isMyAssignedCar) {

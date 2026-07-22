@@ -6,7 +6,7 @@ import AdminParkingGrid from "../components/AdminParkingGrid";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
-const createUserInitialState = { name: "", email: "", password: "", Phone: "" };
+const createUserInitialState = { name: "", email: "", password: "", phone: "" };
 const createCarInitialState = { model: "", plate: "", color: "", owner: "" };
 
 const AdminDashboard = () => {
@@ -85,10 +85,10 @@ const AdminDashboard = () => {
             name: newUser.name.trim(),
             email: newUser.email.trim(),
             password: newUser.password,
-            Phone: newUser.Phone.trim(),
+            phone: newUser.phone.trim(),
         };
 
-        if (!payload.name || !payload.email || !payload.password || !payload.Phone) {
+        if (!payload.name || !payload.email || !payload.password || !payload.phone) {
             setError("جميع حقول المستخدم مطلوبة");
             return;
         }
@@ -341,8 +341,8 @@ const AdminDashboard = () => {
                             </div>
                             <div className="field-group">
                                 <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
-                                <input id="user-phone" className="input" value={newUser.Phone}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, Phone: e.target.value }))}
+                                <input id="user-phone" className="input" value={newUser.phone}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, phone: e.target.value }))}
                                     disabled={submitting} />
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
@@ -379,7 +379,7 @@ const AdminDashboard = () => {
                                     <option value="">اختر المالك</option>
                                     {users.map((person) => (
                                         <option key={person._id} value={person._id}>
-                                            {person.name} ({person.Phone})
+                                            {person.name} ({person.phone})
                                         </option>
                                     ))}
                                 </select>
@@ -436,7 +436,7 @@ const AdminDashboard = () => {
                             return (
                                 <li key={person._id} className="manage-list__row">
                                     <span className="manage-list__info">
-                                        <strong>{person.name}</strong> — {person.Phone}
+                                        <strong>{person.name}</strong> — {person.phone}
                                         {person.role === "admin" ? " · مشرف" : ""}
                                         {isSelf ? " (أنت)" : ""}
                                     </span>

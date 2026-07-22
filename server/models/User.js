@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
             ref: "Car",
             default: null,
         },
-        Phone: {
+        phone: {
             type: String,
             required: true,
             unique: true,

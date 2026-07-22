@@ -8,7 +8,7 @@ const { requireAdmin } = require("../middleware/roleMiddleware");
 
 router.get("/", protect, requireAdmin, getAllUsers);
 
-router.get("/Phone/:Phone", protect, requireAdmin, getUserByPhone);
+router.get("/phone/:phone", protect, requireAdmin, getUserByPhone);
 
 router.put("/:id", protect, updateUser);
 
