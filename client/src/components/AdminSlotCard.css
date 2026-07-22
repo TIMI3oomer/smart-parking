@@ -1,0 +1,51 @@
+.admin-popup{
+    width: 200px;
+}
+
+.popup-close{
+    background:none;
+    border: none;
+    color : white;
+    font-size:1rem;
+    cursor: pointer;
+    line-height:1;
+    padding: 0;
+}
+
+.popup-select{
+    width: 100%;
+    margin: 0.4rem 0;
+    font-size:0.75rem;
+    padding:0.3rem;
+    border-radius: 4px;
+    border:none;
+}
+
+.popup-action{
+    width:100%;
+    background:#3b82f6;
+    color:white;
+    border:none;
+    border-radius: 4px;
+    padding:0.4rem;
+    font-size:0.75rem;
+    cursor: pointer;
+    margin-top: 0.2rem;
+}
+
+.popup-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.popup-action--reserve {
+    background: #d97706;
+}
+
+.popup-action--free {
+    background: #64748b;
+}
+
+.popup-action--delete {
+    background: #b91c1c;
+}

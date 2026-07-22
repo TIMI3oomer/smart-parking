@@ -4,12 +4,12 @@ const protect = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "No token provided" });
+        return res.status(401).json({ message: "لم يتم توفير رمز الدخول" });
     }
 
     const token = authHeader.slice("Bearer ".length).trim();
     if (!token) {
-        return res.status(401).json({ message: "No token provided" });
+        return res.status(401).json({ message: "لم يتم توفير رمز الدخول" });
     }
 
     try {
@@ -17,7 +17,7 @@ const protect = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(401).json({ message: "رمز الدخول غير صالح أو منتهي الصلاحية" });
     }
 };
 

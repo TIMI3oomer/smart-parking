@@ -29,9 +29,9 @@ const EmptyIcon = () => (
 );
 
 const STATUS_META = {
-    empty: { label: "Open", icon: EmptyIcon },
-    reserved: { label: "Reserved", icon: ReservedIcon },
-    occupied: { label: "Occupied", icon: CarIcon },
+    empty: { label: "شاغر", icon: EmptyIcon },
+    reserved: { label: "محجوز", icon: ReservedIcon },
+    occupied: { label: "مشغول", icon: CarIcon },
 };
 
 const SlotCard = ({ slot, onClick }) => {
@@ -51,7 +51,7 @@ const SlotCard = ({ slot, onClick }) => {
                 }
             }}
             className={`bay bay--${status}`}
-            aria-label={`Slot ${slot.slotNumber}, ${meta.label}`}
+            aria-label={`الموقف ${slot.slotNumber}، ${meta.label}`}
         >
             <span className="bay__line bay__line--left" aria-hidden="true" />
             <span className="bay__line bay__line--right" aria-hidden="true" />

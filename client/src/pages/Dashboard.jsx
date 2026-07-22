@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
-import ParkingGrid from "../components/ParkingGrid";
+import ParkingGrid from "../components/parkingGrid";
 import CarInfo from "../components/carInfo";
 
 const Dashboard = () => {
@@ -18,7 +18,7 @@ const Dashboard = () => {
             setSlots(Array.isArray(res.data) ? res.data : []);
             setError("");
         } catch {
-            setError("Failed to load parking slots");
+            setError("تعذر تحميل مواقف السيارات");
         } finally {
             setLoading(false);
         }
@@ -28,15 +28,15 @@ const Dashboard = () => {
         void loadSlots();
     }, [loadSlots]);
 
-    const handleReserve = async (slot) => {
+    const handleOccupy = async (slot) => {
         setSubmitting(true);
         setError("");
         try {
-            await api.put(`/slot/${slot._id}/reserve`);
+            await api.put(`/slot/${slot._id}/occupy`);
             setSelectedSlot(null);
             await loadSlots();
         } catch (err) {
-            setError(err.response?.data?.message || "Could not reserve slot");
+            setError(err.response?.data?.message || "تعذر إشغال الموقف");
         } finally {
             setSubmitting(false);
         }
@@ -50,7 +50,7 @@ const Dashboard = () => {
             setSelectedSlot(null);
             await loadSlots();
         } catch (err) {
-            setError(err.response?.data?.message || "Could not free slot");
+            setError(err.response?.data?.message || "تعذر إخلاء الموقف");
         } finally {
             setSubmitting(false);
         }
@@ -59,7 +59,7 @@ const Dashboard = () => {
     if (loading) {
         return (
             <div className="page-shell">
-                <p>Loading…</p>
+                <p>جارٍ التحميل…</p>
             </div>
         );
     }
@@ -68,10 +68,10 @@ const Dashboard = () => {
         <div className="page-shell">
             <div className="page-header">
                 <div>
-                    <h2 className="page-title">Welcome, {user?.name}</h2>
-                    <p className="page-subtitle">Monitor your reserved and occupied parking slots.</p>
+                    <h2 className="page-title">أهلًا، {user?.name}</h2>
+                    <p className="page-subtitle">تابع مواقف السيارات المحجوزة والمشغولة.</p>
                 </div>
-                <button className="btn btn--ghost" onClick={logout}>Logout</button>
+                <button className="btn btn--logout" onClick={logout}>تسجيل الخروج</button>
             </div>
             {error && <p className="page-error" role="alert">{error}</p>}
             <ParkingGrid slots={slots} onSlotClick={setSelectedSlot} />
@@ -79,7 +79,7 @@ const Dashboard = () => {
             <CarInfo
                 slot={selectedSlot}
                 onClose={() => setSelectedSlot(null)}
-                onReserve={handleReserve}
+                onOccupy={handleOccupy}
                 onFree={handleFree}
                 currentUserId={user?._id ?? user?.id}
                 disabled={submitting}

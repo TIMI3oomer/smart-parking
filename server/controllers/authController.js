@@ -7,18 +7,18 @@ const login = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
+            return res.status(400).json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان" });
         }
 
         const user = await User.findOne({ email: email.trim().toLowerCase() }).select("+password");
 
         if (!user) {
-            return res.status(401).json({ message: "Invalid email or password" });
+            return res.status(401).json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid email or password" });
+            return res.status(401).json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
         }
 
         const token = jwt.sign(
@@ -39,7 +39,7 @@ const login = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Something went wrong" });
+        res.status(500).json({ message: "حدث خطأ ما" });
     }
 };
 

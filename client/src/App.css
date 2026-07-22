@@ -25,19 +25,21 @@
 .page-title {
   margin: 0;
   font-size: clamp(1.5rem, 2vw, 2rem);
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0746c4;
 }
 
 .page-subtitle {
   margin: 0.35rem 0 0;
-  color: #475467; 
+  color: #2a6dcb; 
 }
 
 .page-error {
   margin: 0 0 1rem;
   padding: 0.9rem 1rem;
   border: 1px solid rgba(239, 68, 68, 0.35);
-  border-left: 5px solid #b42318;
+  border-inline-start: 5px solid #b42318;
   border-radius: 16px;
   background: rgba(254, 242, 242, 0.95);
   color: #7a1710;
@@ -90,12 +92,31 @@
 }
 
 .btn--ghost {
-  background: rgba(15, 23, 42, 0.08);
-  color: #1f2937;
+  background: rgb(245, 246, 248);
+  color: #000000;
+  box-shadow:0 10px 24pc rgba(8,145,178,0.24);
+  border: 2px solid #2a6dcb;
+}
+.btn--ghost:hover
+{
+  background-color: #2a6dcb;
+  color: white;
 }
 
 .btn--danger {
   background: linear-gradient(135deg, #b91c1c, #ef4444);
+  color: #fff;
+}
+
+.btn--logout {
+  background: #fff;
+  color: #b91c1c;
+  border: 2px solid #b91c1c;
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.16);
+}
+
+.btn--logout:hover {
+  background: #b91c1c;
   color: #fff;
 }
 
@@ -109,7 +130,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  text-align: left;
+  text-align: start;
 }
 
 .field-label {
@@ -154,49 +175,6 @@
   outline: none;
   border-color: rgba(8, 145, 178, 0.8);
   box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.18);
-}
-
-.garage {
-  display: grid;
-  gap: 1.75rem;
-}
-
-.garage-floor {
-  border-radius: 24px;
-  padding: 1.25rem;
-  background: repeating-linear-gradient(
-    135deg,
-    #e7e9ee 0px,
-    #e7e9ee 26px,
-    #dee1e8 26px,
-    #dee1e8 52px
-  );
-  border: 1px solid rgba(15, 23, 42, 0.1);
-}
-.garage-floor__sign {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.garage-floor__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 10px;
-  background: #142433;
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.garage-floor__label {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #142433;
 }
 
 .slot-grid {

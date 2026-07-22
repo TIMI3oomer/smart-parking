@@ -3,13 +3,13 @@ const Slot = require("../models/ParkingSlot");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const handleServerError = (res, error, fallback = "Something went wrong") => {
+const handleServerError = (res, error, fallback = "حدث خطأ ما") => {
     console.error(error);
     if (error.name === "CastError") {
-        return res.status(400).json({ message: "Invalid id format" });
+        return res.status(400).json({ message: "صيغة المعرف غير صالحة" });
     }
     if (error.name === "ValidationError") {
-        return res.status(400).json({ message: "Invalid input" });
+        return res.status(400).json({ message: "بيانات غير صالحة" });
     }
     return res.status(500).json({ message: fallback });
 };
@@ -19,13 +19,6 @@ const normalizeCreatePayload = (payload = {}) => {
         slotNumber: payload.slotNumber,
         status: payload.status,
     };
-
-    if (payload.floor !== undefined && payload.floor !== null && payload.floor !== "") {
-        const floorNumber = Number(payload.floor);
-        if (Number.isInteger(floorNumber) && floorNumber >= 1) {
-            normalized.floor = floorNumber;
-        }
-    }
 
     if (typeof payload.currentCar === "string") {
         const trimmedCurrentCar = payload.currentCar.trim();
@@ -53,12 +46,6 @@ const normalizeUpdatePayload = (payload = {}) => {
     }
     if (Object.prototype.hasOwnProperty.call(payload, "status")) {
         update.status = payload.status;
-    }
-    if (Object.prototype.hasOwnProperty.call(payload, "floor")) {
-        const floorNumber = Number(payload.floor);
-        if (Number.isInteger(floorNumber) && floorNumber >= 1) {
-            update.floor = floorNumber;
-        }
     }
     if (Object.prototype.hasOwnProperty.call(payload, "currentCar")) {
         if (typeof payload.currentCar === "string") {
@@ -106,14 +93,14 @@ const getAllSlots = async (req, res) => {
             .populate("reservedFor", "name Phone");
         res.json(slots);
     } catch (error) {
-        handleServerError(res, error, "Failed to load slots");
+        handleServerError(res, error, "تعذر تحميل المواقف");
     }
 };
 
 const getSlotById = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid slot id" });
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         const slot = await Slot.findById(req.params.id)
@@ -124,11 +111,11 @@ const getSlotById = async (req, res) => {
             .populate("reservedFor", "name Phone");
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
         res.json(slot);
     } catch (error) {
-        handleServerError(res, error, "Failed to load slot");
+        handleServerError(res, error, "تعذر تحميل الموقف");
     }
 };
 
@@ -137,13 +124,13 @@ const createSlot = async (req, res) => {
         const payload = normalizeCreatePayload(req.body);
 
         if (!payload.slotNumber || typeof payload.slotNumber !== "string") {
-            return res.status(400).json({ message: "slotNumber is required" });
+            return res.status(400).json({ message: "رقم الموقف مطلوب" });
         }
         if (payload.currentCar && !isValidId(payload.currentCar)) {
-            return res.status(400).json({ message: "Invalid currentCar id" });
+            return res.status(400).json({ message: "معرف السيارة غير صالح" });
         }
         if (payload.reservedFor && !isValidId(payload.reservedFor)) {
-            return res.status(400).json({ message: "Invalid reservedFor id" });
+            return res.status(400).json({ message: "معرف الحجز غير صالح" });
         }
 
         const slot = new Slot(payload);
@@ -151,9 +138,9 @@ const createSlot = async (req, res) => {
         res.status(201).json(slot);
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(409).json({ message: "A slot with that number already exists" });
+            return res.status(409).json({ message: "يوجد موقف بهذا الرقم بالفعل" });
         }
-        handleServerError(res, error, "Could not create slot");
+        handleServerError(res, error, "تعذر إنشاء الموقف");
     }
 };
 
@@ -162,15 +149,16 @@ const updateSlot = async (req, res) => {
         const isAdmin = req.user.role === "admin";
 
         if (!isAdmin) {
-            return res.status(403).json({ message: "Admins only" });
+            return res.status(403).json({ message: "للمشرفين فقط" });
         }
-        if (!isValidId(req.params.id)) {            return res.status(400).json({ message: "Invalid slot id" });
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         const updatePayload = normalizeUpdatePayload(req.body);
 
         if (!updatePayload.$set && !updatePayload.$unset) {
-            return res.status(400).json({ message: "No fields to update" });
+            return res.status(400).json({ message: "لا توجد حقول للتحديث" });
         }
 
         const slot = await Slot.findByIdAndUpdate(
@@ -183,31 +171,66 @@ const updateSlot = async (req, res) => {
         });
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
         res.json(slot);
     } catch (error) {
-        handleServerError(res, error, "Could not update slot");
+        handleServerError(res, error, "تعذر تحديث الموقف");
     }
 };
 
+// Admin-only: reserve an empty slot for someone in advance (no car parked yet).
 const reserveSlot = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid slot id" });
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         const slot = await Slot.findById(req.params.id);
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
 
         if (slot.status !== "empty") {
-            return res.status(400).json({ message: "Slot is not available" });
+            return res.status(400).json({ message: "الموقف غير متاح" });
         }
 
         slot.status = "reserved";
+        slot.reservedFor = req.body.userId && isValidId(req.body.userId) ? req.body.userId : req.user.id;
+        await slot.save();
+
+        const populatedSlot = await Slot.findById(slot._id)
+            .populate({
+                path: "currentCar",
+                populate: { path: "owner", select: "name Phone" },
+            })
+            .populate("reservedFor", "name Phone");
+
+        res.json(populatedSlot);
+    } catch (error) {
+        handleServerError(res, error, "تعذر حجز الموقف");
+    }
+};
+
+// Self-service: a regular user occupies an empty slot for themselves right now.
+const occupySlot = async (req, res) => {
+    try {
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
+        }
+
+        const slot = await Slot.findById(req.params.id);
+
+        if (!slot) {
+            return res.status(404).json({ message: "الموقف غير موجود" });
+        }
+
+        if (slot.status !== "empty") {
+            return res.status(400).json({ message: "الموقف غير متاح" });
+        }
+
+        slot.status = "occupied";
         slot.reservedFor = req.user.id;
         await slot.save();
 
@@ -220,7 +243,7 @@ const reserveSlot = async (req, res) => {
 
         res.json(populatedSlot);
     } catch (error) {
-        handleServerError(res, error, "Could not reserve slot");
+        handleServerError(res, error, "تعذر إشغال الموقف");
     }
 };
 
@@ -229,10 +252,10 @@ const assignCarToSlot = async (req, res) => {
         const { carId } = req.body;
 
         if (!carId || !isValidId(carId)) {
-            return res.status(400).json({ message: "A valid carId is required" });
+            return res.status(400).json({ message: "معرف سيارة صالح مطلوب" });
         }
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid slot id" });
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         // FIX: previously a car could be assigned to multiple slots at
@@ -244,7 +267,7 @@ const assignCarToSlot = async (req, res) => {
         });
         if (alreadyParkedElsewhere) {
             return res.status(409).json({
-                message: `That car is already assigned to slot ${alreadyParkedElsewhere.slotNumber}`,
+                message: `هذه السيارة معينة بالفعل للموقف ${alreadyParkedElsewhere.slotNumber}`,
             });
         }
 
@@ -258,18 +281,18 @@ const assignCarToSlot = async (req, res) => {
         });
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
         res.json(slot);
     } catch (error) {
-        handleServerError(res, error, "Could not assign car");
+        handleServerError(res, error, "تعذر تعيين السيارة");
     }
 };
 
 const freeSlot = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid slot id" });
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         // FIX: populate currentCar's owner so we can check ownership of
@@ -280,7 +303,7 @@ const freeSlot = async (req, res) => {
         });
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
 
         const isAdmin = req.user.role === "admin";
@@ -292,7 +315,7 @@ const freeSlot = async (req, res) => {
         const isMyAssignedCar = slot.currentCar?.owner?.toString() === req.user.id;
 
         if (!isAdmin && !isReservedByMe && !isMyAssignedCar) {
-            return res.status(403).json({ message: "You can only free your own slot" });
+            return res.status(403).json({ message: "لا يمكنك إخلاء إلا موقفك الخاص" });
         }
 
         slot.status = "empty";
@@ -309,24 +332,24 @@ const freeSlot = async (req, res) => {
 
         res.json(populatedSlot);
     } catch (error) {
-        handleServerError(res, error, "Could not free slot");
+        handleServerError(res, error, "تعذر إخلاء الموقف");
     }
 };
 
 const deleteSlot = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid slot id" });
+            return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
         const slot = await Slot.findByIdAndDelete(req.params.id);
 
         if (!slot) {
-            return res.status(404).json({ message: "slot not found" });
+            return res.status(404).json({ message: "الموقف غير موجود" });
         }
-        res.json({ message: "slot deleted successfully" });
+        res.json({ message: "تم حذف الموقف بنجاح" });
     } catch (error) {
-        handleServerError(res, error, "Could not delete slot");
+        handleServerError(res, error, "تعذر حذف الموقف");
     }
 };
 
@@ -336,6 +359,7 @@ module.exports = {
     createSlot,
     updateSlot,
     reserveSlot,
+    occupySlot,
     assignCarToSlot,
     freeSlot,
     deleteSlot,

@@ -5,16 +5,16 @@ const Slot = require("../models/ParkingSlot");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const handleServerError = (res, error, fallback = "Something went wrong") => {
+const handleServerError = (res, error, fallback = "حدث خطأ ما") => {
     console.error(error);
     if (error.code === 11000) {
-        return res.status(409).json({ message: "A car with that plate already exists" });
+        return res.status(409).json({ message: "توجد سيارة بهذه اللوحة بالفعل" });
     }
     if (error.name === "CastError") {
-        return res.status(400).json({ message: "Invalid id format" });
+        return res.status(400).json({ message: "صيغة المعرف غير صالحة" });
     }
     if (error.name === "ValidationError") {
-        return res.status(400).json({ message: "Invalid input" });
+        return res.status(400).json({ message: "بيانات غير صالحة" });
     }
     return res.status(500).json({ message: fallback });
 };
@@ -24,7 +24,7 @@ const getAllCars = async (req, res) => {
         const cars = await Car.find().populate("owner", "name Phone");
         res.json(cars);
     } catch (error) {
-        handleServerError(res, error, "Failed to load cars");
+        handleServerError(res, error, "تعذر تحميل السيارات");
     }
 };
 
@@ -32,11 +32,11 @@ const getCarByPlate = async (req, res) => {
     try {
         const car = await Car.findOne({ plate: req.params.plate }).populate("owner", "name Phone");
         if (!car) {
-            return res.status(404).json({ message: "car not found" });
+            return res.status(404).json({ message: "السيارة غير موجودة" });
         }
         res.json(car);
     } catch (error) {
-        handleServerError(res, error, "Failed to load car");
+        handleServerError(res, error, "تعذر تحميل السيارة");
     }
 };
 
@@ -45,15 +45,15 @@ const createCar = async (req, res) => {
         const { model, plate, color, owner } = req.body;
 
         if (!model || !plate || !owner) {
-            return res.status(400).json({ message: "model, plate, and owner are required" });
+            return res.status(400).json({ message: "الطراز ورقم اللوحة والمالك مطلوبة" });
         }
         if (!isValidId(owner)) {
-            return res.status(400).json({ message: "Invalid owner id" });
+            return res.status(400).json({ message: "معرف المالك غير صالح" });
         }
 
         const ownerExists = await User.exists({ _id: owner });
         if (!ownerExists) {
-            return res.status(404).json({ message: "owner user not found" });
+            return res.status(404).json({ message: "المستخدم المالك غير موجود" });
         }
 
         const car = new Car({
@@ -67,14 +67,14 @@ const createCar = async (req, res) => {
         const populated = await car.populate("owner", "name Phone");
         res.status(201).json(populated);
     } catch (error) {
-        handleServerError(res, error, "Could not create car");
+        handleServerError(res, error, "تعذر إنشاء السيارة");
     }
 };
 
 const updateCar = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid car id" });
+            return res.status(400).json({ message: "معرف السيارة غير صالح" });
         }
 
         const update = {};
@@ -83,17 +83,17 @@ const updateCar = async (req, res) => {
         if (req.body.color) update.color = String(req.body.color).trim();
         if (req.body.owner) {
             if (!isValidId(req.body.owner)) {
-                return res.status(400).json({ message: "Invalid owner id" });
+                return res.status(400).json({ message: "معرف المالك غير صالح" });
             }
             const ownerExists = await User.exists({ _id: req.body.owner });
             if (!ownerExists) {
-                return res.status(404).json({ message: "owner user not found" });
+                return res.status(404).json({ message: "المستخدم المالك غير موجود" });
             }
             update.owner = req.body.owner;
         }
 
         if (Object.keys(update).length === 0) {
-            return res.status(400).json({ message: "No valid fields to update" });
+            return res.status(400).json({ message: "لا توجد حقول صالحة للتحديث" });
         }
 
         const car = await Car.findByIdAndUpdate(req.params.id, update, {
@@ -102,33 +102,33 @@ const updateCar = async (req, res) => {
         }).populate("owner", "name Phone");
 
         if (!car) {
-            return res.status(404).json({ message: "car not found" });
+            return res.status(404).json({ message: "السيارة غير موجودة" });
         }
         res.json(car);
     } catch (error) {
-        handleServerError(res, error, "Could not update car");
+        handleServerError(res, error, "تعذر تحديث السيارة");
     }
 };
 
 const deleteCar = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "Invalid car id" });
+            return res.status(400).json({ message: "معرف السيارة غير صالح" });
         }
         const parkedIn = await Slot.findOne({ currentCar: req.params.id });
         if (parkedIn) {
             return res.status(409).json({
-                message: `Free slot ${parkedIn.slotNumber} before deleting this car`,
+                message: `يجب إخلاء الموقف ${parkedIn.slotNumber} قبل حذف هذه السيارة`,
             });
         }
 
         const car = await Car.findByIdAndDelete(req.params.id);
         if (!car) {
-            return res.status(404).json({ message: "car not found" });
+            return res.status(404).json({ message: "السيارة غير موجودة" });
         }
-        res.json({ message: "car deleted successfully" });
+        res.json({ message: "تم حذف السيارة بنجاح" });
     } catch (error) {
-        handleServerError(res, error, "Could not delete car");
+        handleServerError(res, error, "تعذر حذف السيارة");
     }
 };
 

@@ -15,7 +15,7 @@ const Login = () => {
         const trimmedEmail = email.trim();
 
         if (!trimmedEmail || !password) {
-            setError("Enter your email and password");
+            setError("أدخل بريدك الإلكتروني وكلمة المرور");
             return;
         }
 
@@ -25,7 +25,7 @@ const Login = () => {
             const loggedInUser = await login(trimmedEmail, password);
             navigate(loggedInUser?.role === "admin" ? "/admin" : "/dashboard");
         } catch {
-            setError("Invalid email or password");
+            setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
         } finally {
             setSubmitting(false);
         }
@@ -34,12 +34,12 @@ const Login = () => {
     return (
         <div className="page-shell stack">
             <form onSubmit={handleSubmit} className="panel panel--padded stack">
-                <h2 className="page-title">Login</h2>
+                <h2 className="page-title">تسجيل الدخول</h2>
                 {error && <p className="page-error" role="alert">{error}</p>}
                 <input
                     className="input"
                     type="email"
-                    placeholder="Email"
+                    placeholder="البريد الإلكتروني"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={submitting}
@@ -48,14 +48,14 @@ const Login = () => {
                 <input
                     className="input"
                     type="password"
-                    placeholder="Password"
+                    placeholder="كلمة المرور"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={submitting}
                     autoComplete="current-password"
                 />
                 <button className="btn btn--primary" type="submit" disabled={submitting}>
-                    {submitting ? "Logging in…" : "Login"}
+                    {submitting ? "جارٍ تسجيل الدخول…" : "تسجيل الدخول"}
                 </button>
             </form>
         </div>

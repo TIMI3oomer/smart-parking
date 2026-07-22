@@ -1,39 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
-import ParkingGrid from "../components/ParkingGrid";
+import AdminParkingGrid from "../components/AdminParkingGrid";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
-const createUserInitialState = {
-    name: "",
-    email: "",
-    password: "",
-    Phone: "",
-};
-
-const createCarInitialState = {
-    model: "",
-    plate: "",
-    color: "",
-    owner: "",
-};
+const createUserInitialState = { name: "", email: "", password: "", Phone: "" };
+const createCarInitialState = { model: "", plate: "", color: "", owner: "" };
 
 const AdminDashboard = () => {
     const [slots, setSlots] = useState([]);
     const [cars, setCars] = useState([]);
     const [users, setUsers] = useState([]);
-    const [selectedSlot, setSelectedSlot] = useState(null);
     const [newSlotNumber, setNewSlotNumber] = useState("");
-    const [newSlotFloor, setNewSlotFloor] = useState("1");
     const [newUser, setNewUser] = useState(createUserInitialState);
     const [newCar, setNewCar] = useState(createCarInitialState);
     const [activeCreateForm, setActiveCreateForm] = useState("slot");
-    const [assignCarId, setAssignCarId] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     const isAdmin = user?.role === "admin";
     const currentUserId = user?._id ?? user?.id;
@@ -50,7 +38,7 @@ const AdminDashboard = () => {
             setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
             setError("");
         } catch (err) {
-            setError(getErrorMessage(err, "Failed to load data"));
+            setError(getErrorMessage(err, "تعذر تحميل البيانات"));
         } finally {
             setLoading(false);
         }
@@ -65,33 +53,26 @@ const AdminDashboard = () => {
         const trimmed = newSlotNumber.trim();
 
         if (!trimmed) {
-            setError("Slot number can't be empty");
+            setError("رقم الموقف لا يمكن أن يكون فارغًا");
             return;
         }
         if (!/^[A-Za-z0-9-]{1,10}$/.test(trimmed)) {
-            setError("Slot number can only contain letters, numbers, and hyphens (max 10 chars)");
+            setError("رقم الموقف يجب أن يحتوي على أحرف وأرقام وشرطات فقط (10 أحرف كحد أقصى)");
             return;
         }
         if (slots.some((s) => s.slotNumber?.toLowerCase() === trimmed.toLowerCase())) {
-            setError("A slot with that number already exists");
-            return;
-        }
-
-        const floorNumber = Number(newSlotFloor);
-        if (!Number.isInteger(floorNumber) || floorNumber < 1) {
-            setError("Floor must be a whole number, 1 or higher");
+            setError("يوجد موقف بهذا الرقم بالفعل");
             return;
         }
 
         setSubmitting(true);
         setError("");
         try {
-            await api.post("/slot", { slotNumber: trimmed, floor: floorNumber });
+            await api.post("/slot", { slotNumber: trimmed });
             setNewSlotNumber("");
-            setNewSlotFloor("1");
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not create slot"));
+            setError(getErrorMessage(err, "تعذر إنشاء الموقف"));
         } finally {
             setSubmitting(false);
         }
@@ -108,11 +89,11 @@ const AdminDashboard = () => {
         };
 
         if (!payload.name || !payload.email || !payload.password || !payload.Phone) {
-            setError("All user fields are required");
+            setError("جميع حقول المستخدم مطلوبة");
             return;
         }
         if (payload.password.length < 8) {
-            setError("Password must be at least 8 characters");
+            setError("يجب أن تتكون كلمة المرور من 8 أحرف على الأقل");
             return;
         }
 
@@ -123,7 +104,7 @@ const AdminDashboard = () => {
             setNewUser(createUserInitialState);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not create user"));
+            setError(getErrorMessage(err, "تعذر إنشاء المستخدم"));
         } finally {
             setSubmitting(false);
         }
@@ -140,7 +121,7 @@ const AdminDashboard = () => {
         };
 
         if (!payload.model || !payload.plate || !payload.owner) {
-            setError("Model, plate, and owner are required");
+            setError("الطراز ورقم اللوحة والمالك حقول مطلوبة");
             return;
         }
 
@@ -151,77 +132,58 @@ const AdminDashboard = () => {
             setNewCar(createCarInitialState);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not create car"));
+            setError(getErrorMessage(err, "تعذر إنشاء السيارة"));
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleAssign = async () => {
-        if (!assignCarId || !selectedSlot?._id) {
-            setError("Select a car before assigning");
-            return;
-        }
-
+    const handleAssign = async (slot, carId) => {
         setSubmitting(true);
         setError("");
         try {
-            await api.put(`/slot/${selectedSlot._id}/assign`, { carId: assignCarId });
-            setSelectedSlot(null);
-            setAssignCarId("");
+            await api.put(`/slot/${slot._id}/assign`, { carId });
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not assign car"));
+            setError(getErrorMessage(err, "تعذر تعيين السيارة"));
         } finally {
             setSubmitting(false);
         }
     };
-    const handleChangeFloor = async (slot, floorValue) => {
-        const floorNumber = Number(floorValue);
-        if (!Number.isInteger(floorNumber) || floorNumber < 1) {
-            setError("Floor must be a whole number, 1 or higher");
-            return;
-        }
-        if (floorNumber === slot.floor) return;
 
+    const handleReserve = async (slot) => {
         setSubmitting(true);
         setError("");
         try {
-            await api.put(`/slot/${slot._id}`, { floor: floorNumber });
+            await api.put(`/slot/${slot._id}/reserve`);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not move slot"));
+            setError(getErrorMessage(err, "تعذر حجز الموقف"));
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleFree = async (slot) => {
-        if (!slot?._id) return;
-        const confirmed = window.confirm(
-            `Free slot ${slot.slotNumber}? This will remove the assigned car.`
-        );
-        if (!confirmed) return;
+        if (!window.confirm(`هل تريد إخلاء الموقف ${slot.slotNumber}؟ سيتم إزالة السيارة أو الحجز المرتبط به.`)) return;
 
         setSubmitting(true);
         setError("");
         try {
             await api.put(`/slot/${slot._id}/free`);
-            setSelectedSlot(null);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not free slot"));
+            setError(getErrorMessage(err, "تعذر إخلاء الموقف"));
         } finally {
             setSubmitting(false);
         }
     };
-    const handleDeleteSlot = async (slot) => {
-        if (!slot?._id) return;
 
+    const handleDeleteSlot = async (slot) => {
         const warning =
             slot.status === "empty"
-                ? `Delete slot ${slot.slotNumber}? This can't be undone.`
-                : `Slot ${slot.slotNumber} is currently ${slot.status}. Deleting it removes the slot entirely (the car/reservation record itself is not affected). This can't be undone. Continue?`;
+                ? `حذف الموقف ${slot.slotNumber}؟ لا يمكن التراجع عن هذا الإجراء.`
+                : `الموقف ${slot.slotNumber} حاليًا ${slot.status === "occupied" ? "مشغول" : "محجوز"}. حذفه سيزيل الموقف بالكامل (سجل السيارة لن يتأثر). لا يمكن التراجع عن هذا الإجراء. هل تريد المتابعة؟`;
 
         if (!window.confirm(warning)) return;
 
@@ -229,17 +191,16 @@ const AdminDashboard = () => {
         setError("");
         try {
             await api.delete(`/slot/${slot._id}`);
-            setSelectedSlot(null);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not delete slot"));
+            setError(getErrorMessage(err, "تعذر حذف الموقف"));
         } finally {
             setSubmitting(false);
         }
     };
+
     const handleDeleteCar = async (car) => {
-        if (!car?._id) return;
-        if (!window.confirm(`Delete the car ${car.plate}? This can't be undone.`)) return;
+        if (!window.confirm(`حذف السيارة ${car.plate}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
 
         setSubmitting(true);
         setError("");
@@ -247,18 +208,18 @@ const AdminDashboard = () => {
             await api.delete(`/cars/${car._id}`);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not delete car"));
+            setError(getErrorMessage(err, "تعذر حذف السيارة"));
         } finally {
             setSubmitting(false);
         }
     };
+
     const handleDeleteUser = async (person) => {
-        if (!person?._id) return;
         if (person._id === currentUserId) {
-            setError("You can't delete your own account");
+            setError("لا يمكنك حذف حسابك الخاص");
             return;
         }
-        if (!window.confirm(`Delete ${person.name}'s account? This can't be undone.`)) return;
+        if (!window.confirm(`حذف حساب ${person.name}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
 
         setSubmitting(true);
         setError("");
@@ -266,7 +227,7 @@ const AdminDashboard = () => {
             await api.delete(`/users/${person._id}`);
             await fetchData();
         } catch (err) {
-            setError(getErrorMessage(err, "Could not delete user"));
+            setError(getErrorMessage(err, "تعذر حذف المستخدم"));
         } finally {
             setSubmitting(false);
         }
@@ -277,19 +238,16 @@ const AdminDashboard = () => {
         [slots]
     );
     const availableCars = cars.filter((car) => !parkedCarIds.has(car._id));
+
     const createFormTitle =
-        activeCreateForm === "slot"
-            ? "Add a parking slot"
-            : activeCreateForm === "user"
-                ? "Add a user"
-                : activeCreateForm === "car"
-                    ? "Add a car"
-                    : "Choose what to add";
+        activeCreateForm === "slot" ? "إضافة موقف سيارات" :
+        activeCreateForm === "user" ? "إضافة مستخدم" :
+        "إضافة سيارة";
 
     if (!isAdmin) {
         return (
             <div className="page-shell stack">
-                <p className="page-error">You don't have permission to view this page.</p>
+                <p className="page-error">ليس لديك صلاحية لعرض هذه الصفحة.</p>
             </div>
         );
     }
@@ -297,7 +255,7 @@ const AdminDashboard = () => {
     if (loading) {
         return (
             <div className="page-shell stack">
-                <p>Loading dashboard…</p>
+                <p>جارٍ تحميل لوحة التحكم…</p>
             </div>
         );
     }
@@ -306,10 +264,15 @@ const AdminDashboard = () => {
         <div className="page-shell stack">
             <div className="page-header">
                 <div>
-                    <h2 className="page-title">Admin Dashboard — {user?.name}</h2>
-                    <p className="page-subtitle">Create slots, assign cars, and clear spaces.</p>
+                    <h2 className="page-title">لوحة تحكم المشرف — {user?.name}</h2>
+                    <p className="page-subtitle">إنشاء المواقف، تعيين السيارات، وإخلاء الأماكن.</p>
                 </div>
-                <button className="btn btn--ghost" onClick={logout}>Logout</button>
+                <div className="btn-row">
+                    <button className="btn btn--ghost" onClick={() => navigate("/dashboard")}>
+                        عرض لوحة المستخدم العادي
+                    </button>
+                    <button className="btn btn--logout" onClick={logout}>تسجيل الخروج</button>
+                </div>
             </div>
 
             {error && (
@@ -319,33 +282,21 @@ const AdminDashboard = () => {
             )}
 
             <div className="admin-actions panel panel--padded">
-                <div className="admin-actions__buttons" role="tablist" aria-label="What to add">
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeCreateForm === "slot"}
+                <div className="admin-actions__buttons" role="tablist" aria-label="ما تريد إضافته">
+                    <button type="button" role="tab" aria-selected={activeCreateForm === "slot"}
                         className={`btn ${activeCreateForm === "slot" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("slot")}
-                    >
-                        Add Slot
+                        onClick={() => setActiveCreateForm("slot")}>
+                        إضافة موقف
                     </button>
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeCreateForm === "user"}
+                    <button type="button" role="tab" aria-selected={activeCreateForm === "user"}
                         className={`btn ${activeCreateForm === "user" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("user")}
-                    >
-                        Add User
+                        onClick={() => setActiveCreateForm("user")}>
+                        إضافة مستخدم
                     </button>
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeCreateForm === "car"}
+                    <button type="button" role="tab" aria-selected={activeCreateForm === "car"}
                         className={`btn ${activeCreateForm === "car" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("car")}
-                    >
-                        Add Car
+                        onClick={() => setActiveCreateForm("car")}>
+                        إضافة سيارة
                     </button>
                 </div>
 
@@ -355,37 +306,14 @@ const AdminDashboard = () => {
                     {activeCreateForm === "slot" && (
                         <form onSubmit={handleCreateSlot} className="slot-form">
                             <div className="field-group">
-                                <label htmlFor="slot-number" className="field-label">
-                                    Slot number
-                                </label>
-                                <input
-                                    id="slot-number"
-                                    className="input"
-                                    placeholder="e.g. A1"
-                                    value={newSlotNumber}
-                                    maxLength={10}
+                                <label htmlFor="slot-number" className="field-label">رقم الموقف</label>
+                                <input id="slot-number" className="input" placeholder="مثال: A1"
+                                    value={newSlotNumber} maxLength={10}
                                     onChange={(e) => setNewSlotNumber(e.target.value)}
-                                    disabled={submitting}
-                                />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="slot-floor" className="field-label">
-                                    Floor
-                                </label>
-                                <input
-                                    id="slot-floor"
-                                    className="input"
-                                    type="number"
-                                    min="1"
-                                    step="1"
-                                    value={newSlotFloor}
-                                    onChange={(e) => setNewSlotFloor(e.target.value)}
-                                    disabled={submitting}
-                                    style={{ maxWidth: "6rem" }}
-                                />
+                                    disabled={submitting} />
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "Creating…" : "Create Slot"}
+                                {submitting ? "جارٍ الإنشاء…" : "إنشاء الموقف"}
                             </button>
                         </form>
                     )}
@@ -393,53 +321,32 @@ const AdminDashboard = () => {
                     {activeCreateForm === "user" && (
                         <form onSubmit={handleCreateUser} className="admin-form-grid">
                             <div className="field-group">
-                                <label htmlFor="user-name" className="field-label">Full name</label>
-                                <input
-                                    id="user-name"
-                                    className="input"
-                                    value={newUser.name}
-                                    onChange={(e) => setNewUser((current) => ({ ...current, name: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="user-name" className="field-label">الاسم الكامل</label>
+                                <input id="user-name" className="input" value={newUser.name}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, name: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <div className="field-group">
-                                <label htmlFor="user-email" className="field-label">Email address</label>
-                                <input
-                                    id="user-email"
-                                    className="input"
-                                    type="email"
-                                    value={newUser.email}
-                                    onChange={(e) => setNewUser((current) => ({ ...current, email: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="user-email" className="field-label">البريد الإلكتروني</label>
+                                <input id="user-email" className="input" type="email" value={newUser.email}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, email: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <div className="field-group">
-                                <label htmlFor="user-password" className="field-label">Password</label>
-                                <input
-                                    id="user-password"
-                                    className="input"
-                                    type="password"
-                                    value={newUser.password}
-                                    onChange={(e) => setNewUser((current) => ({ ...current, password: e.target.value }))}
-                                    disabled={submitting}
-                                    aria-describedby="user-password-hint"
-                                />
-                                <span id="user-password-hint" className="field-hint">
-                                    At least 8 characters
-                                </span>
+                                <label htmlFor="user-password" className="field-label">كلمة المرور</label>
+                                <input id="user-password" className="input" type="password" value={newUser.password}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, password: e.target.value }))}
+                                    disabled={submitting} aria-describedby="user-password-hint" />
+                                <span id="user-password-hint" className="field-hint">8 أحرف على الأقل</span>
                             </div>
                             <div className="field-group">
-                                <label htmlFor="user-phone" className="field-label">Phone number</label>
-                                <input
-                                    id="user-phone"
-                                    className="input"
-                                    value={newUser.Phone}
-                                    onChange={(e) => setNewUser((current) => ({ ...current, Phone: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
+                                <input id="user-phone" className="input" value={newUser.Phone}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, Phone: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "Creating…" : "Create User"}
+                                {submitting ? "جارٍ الإنشاء…" : "إنشاء المستخدم"}
                             </button>
                         </form>
                     )}
@@ -447,45 +354,29 @@ const AdminDashboard = () => {
                     {activeCreateForm === "car" && (
                         <form onSubmit={handleCreateCar} className="admin-form-grid">
                             <div className="field-group">
-                                <label htmlFor="car-model" className="field-label">Car model</label>
-                                <input
-                                    id="car-model"
-                                    className="input"
-                                    value={newCar.model}
-                                    onChange={(e) => setNewCar((current) => ({ ...current, model: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="car-model" className="field-label">نوع السيارة</label>
+                                <input id="car-model" className="input" value={newCar.model}
+                                    onChange={(e) => setNewCar((c) => ({ ...c, model: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <div className="field-group">
-                                <label htmlFor="car-plate" className="field-label">Plate number</label>
-                                <input
-                                    id="car-plate"
-                                    className="input"
-                                    value={newCar.plate}
-                                    onChange={(e) => setNewCar((current) => ({ ...current, plate: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="car-plate" className="field-label">رقم اللوحة</label>
+                                <input id="car-plate" className="input" value={newCar.plate}
+                                    onChange={(e) => setNewCar((c) => ({ ...c, plate: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <div className="field-group">
-                                <label htmlFor="car-color" className="field-label">Color</label>
-                                <input
-                                    id="car-color"
-                                    className="input"
-                                    value={newCar.color}
-                                    onChange={(e) => setNewCar((current) => ({ ...current, color: e.target.value }))}
-                                    disabled={submitting}
-                                />
+                                <label htmlFor="car-color" className="field-label">اللون</label>
+                                <input id="car-color" className="input" value={newCar.color}
+                                    onChange={(e) => setNewCar((c) => ({ ...c, color: e.target.value }))}
+                                    disabled={submitting} />
                             </div>
                             <div className="field-group">
-                                <label htmlFor="car-owner" className="field-label">Owner</label>
-                                <select
-                                    id="car-owner"
-                                    className="select"
-                                    value={newCar.owner}
-                                    onChange={(e) => setNewCar((current) => ({ ...current, owner: e.target.value }))}
-                                    disabled={submitting}
-                                >
-                                    <option value="">Select owner</option>
+                                <label htmlFor="car-owner" className="field-label">المالك</label>
+                                <select id="car-owner" className="select" value={newCar.owner}
+                                    onChange={(e) => setNewCar((c) => ({ ...c, owner: e.target.value }))}
+                                    disabled={submitting}>
+                                    <option value="">اختر المالك</option>
                                     {users.map((person) => (
                                         <option key={person._id} value={person._id}>
                                             {person.name} ({person.Phone})
@@ -494,94 +385,27 @@ const AdminDashboard = () => {
                                 </select>
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "Creating…" : "Create Car"}
+                                {submitting ? "جارٍ الإنشاء…" : "إنشاء السيارة"}
                             </button>
                         </form>
                     )}
                 </div>
             </div>
 
-            <ParkingGrid slots={slots} onSlotClick={setSelectedSlot} />
+            <AdminParkingGrid
+                slots={slots}
+                cars={availableCars}
+                onAssign={handleAssign}
+                onReserve={handleReserve}
+                onFree={handleFree}
+                onDelete={handleDeleteSlot}
+                submitting={submitting}
+            />
 
-            {selectedSlot && (
-                <div className="panel panel--padded">
-                    <h4 className="page-title" style={{ fontSize: "1.1rem" }}>
-                        Manage Slot {selectedSlot.slotNumber}
-                    </h4>
-
-                    <div className="field-group">
-                        <label htmlFor="slot-floor-edit" className="field-label">Floor</label>
-                        <input
-                            id="slot-floor-edit"
-                            className="input"
-                            type="number"
-                            min="1"
-                            step="1"
-                            defaultValue={selectedSlot.floor ?? 1}
-                            key={selectedSlot._id}
-                            onBlur={(e) => handleChangeFloor(selectedSlot, e.target.value)}
-                            disabled={submitting}
-                            style={{ maxWidth: "6rem" }}
-                            aria-describedby="slot-floor-edit-hint"
-                        />
-                        <span id="slot-floor-edit-hint" className="field-hint">
-                            Change and click elsewhere to move this slot
-                        </span>
-                    </div>
-
-                    <div className="field-group">
-                        <label htmlFor="assign-car" className="field-label">Assign a car to this slot</label>
-                        <select
-                            id="assign-car"
-                            className="select"
-                            value={assignCarId}
-                            onChange={(e) => setAssignCarId(e.target.value)}
-                            disabled={submitting}
-                        >
-                            <option value="">-- Select a car --</option>
-                            {availableCars.map((car) => (
-                                <option key={car._id} value={car._id}>
-                                    {car.plate} ({car.model})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="slot-actions">
-                        <button
-                            className="btn btn--primary"
-                            onClick={handleAssign}
-                            disabled={submitting || !assignCarId}
-                        >
-                            Assign Car
-                        </button>
-                        <button
-                            className="btn btn--danger"
-                            onClick={() => handleFree(selectedSlot)}
-                            disabled={submitting}
-                        >
-                            Free Slot
-                        </button>
-                        <button
-                            className="btn btn--danger"
-                            onClick={() => handleDeleteSlot(selectedSlot)}
-                            disabled={submitting}
-                        >
-                            Delete Slot
-                        </button>
-                        <button
-                            className="btn btn--ghost"
-                            onClick={() => setSelectedSlot(null)}
-                            disabled={submitting}
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
             <div className="panel panel--padded stack">
-                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>Cars</h3>
+                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>السيارات</h3>
                 {cars.length === 0 ? (
-                    <p className="page-subtitle">No cars yet.</p>
+                    <p className="page-subtitle">لا توجد سيارات بعد.</p>
                 ) : (
                     <ul className="manage-list">
                         {cars.map((car) => (
@@ -589,15 +413,11 @@ const AdminDashboard = () => {
                                 <span className="manage-list__info">
                                     <strong>{car.plate}</strong> — {car.model}
                                     {car.color ? ` (${car.color})` : ""}
-                                    {car.owner?.name ? ` · owner: ${car.owner.name}` : ""}
+                                    {car.owner?.name ? ` · المالك: ${car.owner.name}` : ""}
                                 </span>
-                                <button
-                                    type="button"
-                                    className="btn btn--danger"
-                                    onClick={() => handleDeleteCar(car)}
-                                    disabled={submitting}
-                                >
-                                    Delete
+                                <button type="button" className="btn btn--danger"
+                                    onClick={() => handleDeleteCar(car)} disabled={submitting}>
+                                    حذف
                                 </button>
                             </li>
                         ))}
@@ -606,9 +426,9 @@ const AdminDashboard = () => {
             </div>
 
             <div className="panel panel--padded stack">
-                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>Users</h3>
+                <h3 className="page-title" style={{ fontSize: "1.1rem" }}>المستخدمون</h3>
                 {users.length === 0 ? (
-                    <p className="page-subtitle">No users yet.</p>
+                    <p className="page-subtitle">لا يوجد مستخدمون بعد.</p>
                 ) : (
                     <ul className="manage-list">
                         {users.map((person) => {
@@ -617,17 +437,14 @@ const AdminDashboard = () => {
                                 <li key={person._id} className="manage-list__row">
                                     <span className="manage-list__info">
                                         <strong>{person.name}</strong> — {person.Phone}
-                                        {person.role === "admin" ? " · admin" : ""}
-                                        {isSelf ? " (you)" : ""}
+                                        {person.role === "admin" ? " · مشرف" : ""}
+                                        {isSelf ? " (أنت)" : ""}
                                     </span>
-                                    <button
-                                        type="button"
-                                        className="btn btn--danger"
+                                    <button type="button" className="btn btn--danger"
                                         onClick={() => handleDeleteUser(person)}
                                         disabled={submitting || isSelf}
-                                        title={isSelf ? "You can't delete your own account" : undefined}
-                                    >
-                                        Delete
+                                        title={isSelf ? "لا يمكنك حذف حسابك الخاص" : undefined}>
+                                        حذف
                                     </button>
                                 </li>
                             );
