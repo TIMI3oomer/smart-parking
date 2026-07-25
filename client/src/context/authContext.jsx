@@ -44,17 +44,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    const register =async(userData)=>{
-        const res = await api.post("/register",userData);
-        return res.data
-    }
     useEffect(() => {
         window.addEventListener("auth:unauthorized", logout);
         return () => window.removeEventListener("auth:unauthorized", logout);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout,register }}>
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

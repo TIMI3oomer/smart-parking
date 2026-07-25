@@ -34,10 +34,16 @@ const STATUS_META = {
     occupied: { label: "مشغول", icon: CarIcon },
 };
 
+const CATEGORY_META = {
+    ceo: { icon: "★", className: "bay__badge--ceo" },
+    blocking: { icon: "⚠", className: "bay__badge--blocking" },
+};
+
 const SlotCard = ({ slot, onClick }) => {
     const status = slot.status || "empty";
     const meta = STATUS_META[status] || STATUS_META.empty;
     const Icon = meta.icon;
+    const categoryMeta = CATEGORY_META[slot.category];
 
     return (
         <div
@@ -55,6 +61,12 @@ const SlotCard = ({ slot, onClick }) => {
         >
             <span className="bay__line bay__line--left" aria-hidden="true" />
             <span className="bay__line bay__line--right" aria-hidden="true" />
+
+            {categoryMeta && (
+                <span className={`bay__badge ${categoryMeta.className}`} aria-hidden="true">
+                    {categoryMeta.icon}
+                </span>
+            )}
 
             <span className="bay__number">{slot.slotNumber}</span>
             <span className="bay__icon">

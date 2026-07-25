@@ -6,7 +6,7 @@ import AdminParkingGrid from "../components/AdminParkingGrid";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
-const createUserInitialState = { name: "", email: "", password: "", phone: "" };
+const createUserInitialState = { name: "", email: "", password: "", Phone: "" };
 const createCarInitialState = { model: "", plate: "", color: "", owner: "" };
 
 const AdminDashboard = () => {
@@ -14,6 +14,7 @@ const AdminDashboard = () => {
     const [cars, setCars] = useState([]);
     const [users, setUsers] = useState([]);
     const [newSlotNumber, setNewSlotNumber] = useState("");
+    const [newSlotCategory, setNewSlotCategory] = useState("normal");
     const [newUser, setNewUser] = useState(createUserInitialState);
     const [newCar, setNewCar] = useState(createCarInitialState);
     const [activeCreateForm, setActiveCreateForm] = useState("slot");
@@ -68,8 +69,9 @@ const AdminDashboard = () => {
         setSubmitting(true);
         setError("");
         try {
-            await api.post("/slot", { slotNumber: trimmed });
+            await api.post("/slot", { slotNumber: trimmed, category: newSlotCategory });
             setNewSlotNumber("");
+            setNewSlotCategory("normal");
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر إنشاء الموقف"));
@@ -85,10 +87,10 @@ const AdminDashboard = () => {
             name: newUser.name.trim(),
             email: newUser.email.trim(),
             password: newUser.password,
-            phone: newUser.phone.trim(),
+            Phone: newUser.Phone.trim(),
         };
 
-        if (!payload.name || !payload.email || !payload.password || !payload.phone) {
+        if (!payload.name || !payload.email || !payload.password || !payload.Phone) {
             setError("جميع حقول المستخدم مطلوبة");
             return;
         }
@@ -159,6 +161,19 @@ const AdminDashboard = () => {
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر حجز الموقف"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleSetCategory = async (slot, category) => {
+        setSubmitting(true);
+        setError("");
+        try {
+            await api.put(`/slot/${slot._id}`, { category });
+            await fetchData();
+        } catch (err) {
+            setError(getErrorMessage(err, "تعذر تحديث نوع الموقف"));
         } finally {
             setSubmitting(false);
         }
@@ -312,6 +327,16 @@ const AdminDashboard = () => {
                                     onChange={(e) => setNewSlotNumber(e.target.value)}
                                     disabled={submitting} />
                             </div>
+                            <div className="field-group">
+                                <label htmlFor="slot-category" className="field-label">نوع الموقف</label>
+                                <select id="slot-category" className="select" value={newSlotCategory}
+                                    onChange={(e) => setNewSlotCategory(e.target.value)}
+                                    disabled={submitting} style={{ maxWidth: "12rem" }}>
+                                    <option value="normal">عادي</option>
+                                    <option value="ceo">موقف المدير العام</option>
+                                    <option value="blocking">قد يحجب موقفًا آخر</option>
+                                </select>
+                            </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
                                 {submitting ? "جارٍ الإنشاء…" : "إنشاء الموقف"}
                             </button>
@@ -341,8 +366,8 @@ const AdminDashboard = () => {
                             </div>
                             <div className="field-group">
                                 <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
-                                <input id="user-phone" className="input" value={newUser.phone}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, phone: e.target.value }))}
+                                <input id="user-phone" className="input" value={newUser.Phone}
+                                    onChange={(e) => setNewUser((c) => ({ ...c, Phone: e.target.value }))}
                                     disabled={submitting} />
                             </div>
                             <button className="btn btn--primary" type="submit" disabled={submitting}>
@@ -379,7 +404,7 @@ const AdminDashboard = () => {
                                     <option value="">اختر المالك</option>
                                     {users.map((person) => (
                                         <option key={person._id} value={person._id}>
-                                            {person.name} ({person.phone})
+                                            {person.name} ({person.Phone})
                                         </option>
                                     ))}
                                 </select>
@@ -399,6 +424,7 @@ const AdminDashboard = () => {
                 onReserve={handleReserve}
                 onFree={handleFree}
                 onDelete={handleDeleteSlot}
+                onSetCategory={handleSetCategory}
                 submitting={submitting}
             />
 
@@ -436,7 +462,7 @@ const AdminDashboard = () => {
                             return (
                                 <li key={person._id} className="manage-list__row">
                                     <span className="manage-list__info">
-                                        <strong>{person.name}</strong> — {person.phone}
+                                        <strong>{person.name}</strong> — {person.Phone}
                                         {person.role === "admin" ? " · مشرف" : ""}
                                         {isSelf ? " (أنت)" : ""}
                                     </span>

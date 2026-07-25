@@ -10,6 +10,11 @@ const STATUS_LABELS = {
     occupied: "مشغول",
 };
 
+const CATEGORY_LABELS = {
+    ceo: "★ موقف المدير العام",
+    blocking: "⚠ هذا الموقف قد يحجب موقفًا آخر",
+};
+
 const CarInfo = ({ slot, onClose, onOccupy, onFree, currentUserId, disabled }) => {
     if (!slot) return null;
 
@@ -17,19 +22,27 @@ const CarInfo = ({ slot, onClose, onOccupy, onFree, currentUserId, disabled }) =
     const isMine =
         matchesCurrentUser(car?.owner, currentUserId) ||
         matchesCurrentUser(slot.reservedFor, currentUserId);
+    const categoryLabel = CATEGORY_LABELS[slot.category];
 
     return (
         <div className="slot-modal__backdrop">
             <div className="slot-modal__content">
                 <h3 className="slot-modal__title">الموقف: {slot.slotNumber}</h3>
                 <p className="slot-modal__meta">الحالة: {STATUS_LABELS[slot.status] || slot.status}</p>
+                {categoryLabel && (
+                    <p className="slot-modal__section slot-modal__category">{categoryLabel}</p>
+                )}
 
                 {car ? (
                     <>
                         <p className="slot-modal__section"><strong>السيارة:</strong> {car.model} ({car.color})</p>
                         <p className="slot-modal__section"><strong>اللوحة:</strong> {car.plate}</p>
                         <p className="slot-modal__section"><strong>المالك:</strong> {car.owner?.name}</p>
-                        <p className="slot-modal__section"><strong>الهاتف:</strong> {car.owner?.Phone}</p>
+                        {car.owner?.Phone && (
+                            <p className="slot-modal__section">
+                                <strong>الهاتف:</strong> <a href={`tel:${car.owner.Phone}`}>{car.owner.Phone}</a>
+                            </p>
+                        )}
                     </>
                 ) : slot.status === "reserved" && slot.reservedFor ? (
                     <p className="slot-modal__section"><strong>محجوز لـ:</strong> {slot.reservedFor.name}</p>

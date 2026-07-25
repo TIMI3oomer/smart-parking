@@ -9,15 +9,15 @@ const slotSchema = new mongoose.Schema(
             trim: true,
             maxlength: 10,
         },
-        floor: {
-            type: Number,
-            default: 1,
-            min: 1,
-        },
         status: {
             type: String,
             enum: ["empty", "reserved", "occupied"],
             default: "empty",
+        },
+        category: {
+            type: String,
+            enum: ["normal", "ceo", "blocking"],
+            default: "normal",
         },
         currentCar: {
             type: mongoose.Schema.Types.ObjectId,

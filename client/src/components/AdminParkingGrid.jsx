@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminSlotCard from "./AdminSlotCard";
 import "./parkingGrid.css";
 
-const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, onDelete }) => {
+const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, onDelete, onSetCategory }) => {
     const [openId, setOpenId] = useState(null);
 
     const handleToggle = (id) => {
@@ -38,6 +38,7 @@ const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, onDelete }
                         onDelete(s);
                         setOpenId(null);
                     }}
+                    onSetCategory={onSetCategory}
                 />
             ))}
         </div>
