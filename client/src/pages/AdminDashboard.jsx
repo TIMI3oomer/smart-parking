@@ -13,11 +13,9 @@ const AdminDashboard = () => {
     const [slots, setSlots] = useState([]);
     const [cars, setCars] = useState([]);
     const [users, setUsers] = useState([]);
-    const [newSlotNumber, setNewSlotNumber] = useState("");
-    const [newSlotCategory, setNewSlotCategory] = useState("normal");
     const [newUser, setNewUser] = useState(createUserInitialState);
     const [newCar, setNewCar] = useState(createCarInitialState);
-    const [activeCreateForm, setActiveCreateForm] = useState("slot");
+    const [activeCreateForm, setActiveCreateForm] = useState("user");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -48,37 +46,6 @@ const AdminDashboard = () => {
     useEffect(() => {
         void fetchData();
     }, [fetchData]);
-
-    const handleCreateSlot = async (e) => {
-        e.preventDefault();
-        const trimmed = newSlotNumber.trim();
-
-        if (!trimmed) {
-            setError("رقم الموقف لا يمكن أن يكون فارغًا");
-            return;
-        }
-        if (!/^[A-Za-z0-9-]{1,10}$/.test(trimmed)) {
-            setError("رقم الموقف يجب أن يحتوي على أحرف وأرقام وشرطات فقط (10 أحرف كحد أقصى)");
-            return;
-        }
-        if (slots.some((s) => s.slotNumber?.toLowerCase() === trimmed.toLowerCase())) {
-            setError("يوجد موقف بهذا الرقم بالفعل");
-            return;
-        }
-
-        setSubmitting(true);
-        setError("");
-        try {
-            await api.post("/slot", { slotNumber: trimmed, category: newSlotCategory });
-            setNewSlotNumber("");
-            setNewSlotCategory("normal");
-            await fetchData();
-        } catch (err) {
-            setError(getErrorMessage(err, "تعذر إنشاء الموقف"));
-        } finally {
-            setSubmitting(false);
-        }
-    };
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
@@ -166,19 +133,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleSetCategory = async (slot, category) => {
-        setSubmitting(true);
-        setError("");
-        try {
-            await api.put(`/slot/${slot._id}`, { category });
-            await fetchData();
-        } catch (err) {
-            setError(getErrorMessage(err, "تعذر تحديث نوع الموقف"));
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const handleFree = async (slot) => {
         if (!window.confirm(`هل تريد إخلاء الموقف ${slot.slotNumber}؟ سيتم إزالة السيارة أو الحجز المرتبط به.`)) return;
 
@@ -189,26 +143,6 @@ const AdminDashboard = () => {
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر إخلاء الموقف"));
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleDeleteSlot = async (slot) => {
-        const warning =
-            slot.status === "empty"
-                ? `حذف الموقف ${slot.slotNumber}؟ لا يمكن التراجع عن هذا الإجراء.`
-                : `الموقف ${slot.slotNumber} حاليًا ${slot.status === "occupied" ? "مشغول" : "محجوز"}. حذفه سيزيل الموقف بالكامل (سجل السيارة لن يتأثر). لا يمكن التراجع عن هذا الإجراء. هل تريد المتابعة؟`;
-
-        if (!window.confirm(warning)) return;
-
-        setSubmitting(true);
-        setError("");
-        try {
-            await api.delete(`/slot/${slot._id}`);
-            await fetchData();
-        } catch (err) {
-            setError(getErrorMessage(err, "تعذر حذف الموقف"));
         } finally {
             setSubmitting(false);
         }
@@ -254,10 +188,7 @@ const AdminDashboard = () => {
     );
     const availableCars = cars.filter((car) => !parkedCarIds.has(car._id));
 
-    const createFormTitle =
-        activeCreateForm === "slot" ? "إضافة موقف سيارات" :
-        activeCreateForm === "user" ? "إضافة مستخدم" :
-        "إضافة سيارة";
+    const createFormTitle = activeCreateForm === "user" ? "إضافة مستخدم" : "إضافة سيارة";
 
     if (!isAdmin) {
         return (
@@ -280,7 +211,7 @@ const AdminDashboard = () => {
             <div className="page-header">
                 <div>
                     <h2 className="page-title">لوحة تحكم المشرف — {user?.name}</h2>
-                    <p className="page-subtitle">إنشاء المواقف، تعيين السيارات، وإخلاء الأماكن.</p>
+                    <p className="page-subtitle">تعيين السيارات وإدارة الحجوزات — تخطيط الكراج نفسه ثابت.</p>
                 </div>
                 <div className="btn-row">
                     <button className="btn btn--ghost" onClick={() => navigate("/dashboard")}>
@@ -296,13 +227,17 @@ const AdminDashboard = () => {
                 </p>
             )}
 
+            <AdminParkingGrid
+                slots={slots}
+                cars={availableCars}
+                onAssign={handleAssign}
+                onReserve={handleReserve}
+                onFree={handleFree}
+                disabled={submitting}
+            />
+
             <div className="admin-actions panel panel--padded">
                 <div className="admin-actions__buttons" role="tablist" aria-label="ما تريد إضافته">
-                    <button type="button" role="tab" aria-selected={activeCreateForm === "slot"}
-                        className={`btn ${activeCreateForm === "slot" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("slot")}>
-                        إضافة موقف
-                    </button>
                     <button type="button" role="tab" aria-selected={activeCreateForm === "user"}
                         className={`btn ${activeCreateForm === "user" ? "btn--primary" : "btn--ghost"}`}
                         onClick={() => setActiveCreateForm("user")}>
@@ -317,31 +252,6 @@ const AdminDashboard = () => {
 
                 <div className="admin-actions__form">
                     <h3 className="page-title" style={{ fontSize: "1.1rem" }}>{createFormTitle}</h3>
-
-                    {activeCreateForm === "slot" && (
-                        <form onSubmit={handleCreateSlot} className="slot-form">
-                            <div className="field-group">
-                                <label htmlFor="slot-number" className="field-label">رقم الموقف</label>
-                                <input id="slot-number" className="input" placeholder="مثال: A1"
-                                    value={newSlotNumber} maxLength={10}
-                                    onChange={(e) => setNewSlotNumber(e.target.value)}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="slot-category" className="field-label">نوع الموقف</label>
-                                <select id="slot-category" className="select" value={newSlotCategory}
-                                    onChange={(e) => setNewSlotCategory(e.target.value)}
-                                    disabled={submitting} style={{ maxWidth: "12rem" }}>
-                                    <option value="normal">عادي</option>
-                                    <option value="ceo">موقف المدير العام</option>
-                                    <option value="blocking">قد يحجب موقفًا آخر</option>
-                                </select>
-                            </div>
-                            <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "جارٍ الإنشاء…" : "إنشاء الموقف"}
-                            </button>
-                        </form>
-                    )}
 
                     {activeCreateForm === "user" && (
                         <form onSubmit={handleCreateUser} className="admin-form-grid">
@@ -416,17 +326,6 @@ const AdminDashboard = () => {
                     )}
                 </div>
             </div>
-
-            <AdminParkingGrid
-                slots={slots}
-                cars={availableCars}
-                onAssign={handleAssign}
-                onReserve={handleReserve}
-                onFree={handleFree}
-                onDelete={handleDeleteSlot}
-                onSetCategory={handleSetCategory}
-                submitting={submitting}
-            />
 
             <div className="panel panel--padded stack">
                 <h3 className="page-title" style={{ fontSize: "1.1rem" }}>السيارات</h3>

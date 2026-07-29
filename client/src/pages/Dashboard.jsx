@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
 import ParkingGrid from "../components/parkingGrid";
@@ -11,6 +12,8 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const isAdmin = user?.role === "admin";
 
     const loadSlots = useCallback(async () => {
         try {
@@ -71,7 +74,14 @@ const Dashboard = () => {
                     <h2 className="page-title">أهلًا، {user?.name}</h2>
                     <p className="page-subtitle">تابع مواقف السيارات المحجوزة والمشغولة.</p>
                 </div>
-                <button className="btn btn--logout" onClick={logout}>تسجيل الخروج</button>
+                <div className="btn-row">
+                    {isAdmin && (
+                        <button className="btn btn--ghost" onClick={() => navigate("/admin")}>
+                            لوحة تحكم المشرف
+                        </button>
+                    )}
+                    <button className="btn btn--logout" onClick={logout}>تسجيل الخروج</button>
+                </div>
             </div>
             {error && <p className="page-error" role="alert">{error}</p>}
             <ParkingGrid slots={slots} onSlotClick={setSelectedSlot} />

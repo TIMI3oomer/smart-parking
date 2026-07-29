@@ -18,11 +18,39 @@ const slotRoutes = require("./routes/slotRoutes");
 
 const app = express();
 
-app.use(helmet());
+const frameAncestors = (process.env.EMBED_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+frameAncestors.unshift("'self'");
+
+app.use(
+    helmet({
+        frameguard: false,
+        contentSecurityPolicy: {
+            directives: {
+                ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+                "frame-ancestors": frameAncestors,
+            },
+        },
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+);
+
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin(origin, callback) {
+
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("Not allowed by CORS"));
+        },
         credentials: true,
     })
 );
@@ -35,11 +63,20 @@ app.use((req, res, next) => {
     next();
 });
 
-
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 20,
-    message: { message: "Too many attempts, please try again later" },
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "محاولات كثيرة جدًا، حاول مرة أخرى لاحقًا" },
+});
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "محاولات تسجيل دخول كثيرة جدًا من هذا الجهاز، حاول مرة أخرى لاحقًا" },
 });
 
 connectDB();
@@ -47,12 +84,12 @@ connectDB();
 app.use("/api/users", userRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/slot", slotRoutes);
+app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth", authLimiter, authRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ message: "Not found" });
 });
-
 
 app.use((err, req, res, next) => {
     console.error(err);

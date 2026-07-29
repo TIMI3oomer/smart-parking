@@ -177,32 +177,35 @@
 }
 .bay {
   position: relative;
-  border-radius: 10px;
-  padding: 1rem 0.75rem 0.85rem;
+  flex: 0 0 auto;
+  width: 108px;
+  border-radius: 12px;
+  padding: 0.85rem 0.5rem 0.7rem;
   border: 2px solid rgba(255, 255, 255, 0.9);
   cursor: pointer;
   text-align: center;
-  min-height: 128px;
+  min-height: 112px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  background: #4b4f58;
-  color: #fff;
+  gap: 0.3rem;
+  background: #f1f5f9;
+  color: #1f2937;
+  font: inherit;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .bay:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
 }
 .bay__line {
   position: absolute;
   top: 8%;
   bottom: 8%;
   width: 3px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .bay__line--left {
@@ -214,8 +217,8 @@
 }
 
 .bay__number {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   letter-spacing: 0.03em;
 }
 
@@ -223,22 +226,27 @@
   display: flex;
 }
 .bay__status {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .bay--empty {
-  background: linear-gradient(160deg, #1f9d55, #167c43);
+  background: var(--slot-empty-bg);
+  border-color: var(--slot-empty-border);
+  color: var(--slot-empty-text);
 }
 
 .bay--reserved {
-  background: linear-gradient(160deg, #d97706, #b45309);
+  background: var(--slot-reserved-bg);
+  border-color: var(--slot-reserved-border);
+  color: var(--slot-reserved-text);
 }
 
 .bay--occupied {
-  background: linear-gradient(160deg, #475569, #334155);
+  background: var(--slot-occupied-bg);
+  border-color: var(--slot-occupied-border);
+  color: var(--slot-occupied-text);
 }
 
 .bay__badge {
@@ -252,17 +260,33 @@
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
 }
 
 .bay__badge--ceo {
-  background: #eab308;
-  color: #1f2937;
+  background: var(--slot-ceo-badge);
+  color: var(--slot-ceo-text);
 }
 
 .bay__badge--blocking {
-  background: #ec4899;
-  color: #fff;
+  background: var(--slot-blocking-badge);
+  color: var(--slot-blocking-text);
+}
+
+@media (max-width: 640px) {
+  .bay {
+    width: 88px;
+    min-height: 98px;
+    padding: 0.65rem 0.4rem 0.55rem;
+  }
+
+  .bay__number {
+    font-size: 0.95rem;
+  }
+
+  .bay__status {
+    font-size: 0.7rem;
+  }
 }
 
 .slot-modal__backdrop {

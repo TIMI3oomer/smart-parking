@@ -1,0 +1,146 @@
+.garage-plan-wrapper {
+    border-radius: 20px;
+    padding: 0.75rem;
+    background: #eef2f6;
+    border: 2px solid #dbe2ea;
+    box-shadow: inset 0 2px 10px rgba(15, 23, 42, 0.05);
+    overflow-x: auto;
+}
+
+.garage-plan {
+    display: block;
+    width: 100%;
+    min-width: 620px;
+    height: auto;
+}
+
+.garage-plan__walls {
+    fill: #e2e8f0;
+    stroke: #dc2626;
+    stroke-width: 6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.garage-plan__divider {
+    stroke: #b9c3cf;
+    stroke-width: 2;
+    stroke-dasharray: 8 8;
+}
+
+.garage-plan__slot {
+    cursor: pointer;
+}
+
+.garage-plan__rect {
+    stroke-width: 3;
+    transition: filter 0.15s ease;
+}
+
+.garage-plan__slot:hover .garage-plan__rect {
+    filter: brightness(0.97);
+}
+
+.garage-plan__slot:focus-visible {
+    outline: none;
+}
+
+.garage-plan__slot:focus-visible .garage-plan__rect {
+    stroke: #0891b2;
+    stroke-width: 5;
+}
+
+.garage-plan__paint {
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-width: 2;
+}
+
+.garage-plan__number {
+    font-size: 20px;
+    font-weight: 800;
+    fill: currentColor;
+}
+
+.garage-plan__status {
+    font-size: 13px;
+    font-weight: 700;
+    fill: currentColor;
+}
+
+.garage-plan__car-body {
+    fill: #334155;
+    stroke: #1e293b;
+    stroke-width: 1.5;
+}
+
+.garage-plan__car-glass {
+    fill: #93c5fd;
+    opacity: 0.9;
+}
+
+.garage-plan__marker text {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.garage-plan__marker--in rect {
+    fill: #16a34a;
+}
+.garage-plan__marker--in text {
+    fill: #fff;
+}
+
+.garage-plan__marker--out rect {
+    fill: #dc2626;
+}
+.garage-plan__marker--out text {
+    fill: #fff;
+}
+
+.garage-plan__badge {
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.garage-plan__badge--ceo {
+    fill: var(--slot-ceo-badge);
+}
+
+.garage-plan__badge--blocking {
+    fill: var(--slot-blocking-badge);
+}
+
+.garage-plan__badge-icon {
+    font-size: 11px;
+    fill: #1f2937;
+}
+
+.garage-plan__slot.bay--empty {
+    color: var(--slot-empty-text);
+}
+.garage-plan__slot.bay--reserved {
+    color: var(--slot-reserved-text);
+}
+.garage-plan__slot.bay--occupied {
+    color: var(--slot-occupied-text);
+}
+
+.garage-plan__slot.bay--empty .garage-plan__rect {
+    fill: var(--slot-empty-bg);
+    stroke: var(--slot-empty-border);
+}
+.garage-plan__slot.bay--reserved .garage-plan__rect {
+    fill: var(--slot-reserved-bg);
+    stroke: var(--slot-reserved-border);
+}
+.garage-plan__slot.bay--occupied .garage-plan__rect {
+    fill: var(--slot-occupied-bg);
+    stroke: var(--slot-occupied-border);
+}
+
+@media (max-width: 640px) {
+    .garage-plan-wrapper {
+        padding: 0.5rem;
+        border-radius: 16px;
+    }
+}

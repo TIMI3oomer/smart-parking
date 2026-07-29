@@ -1,47 +1,35 @@
 import { useState } from "react";
-import AdminSlotCard from "./AdminSlotCard";
-import "./parkingGrid.css";
+import GarageFloorPlan from "./GarageFloorPlan";
+import AdminSlotModal from "./AdminSlotModal";
 
-const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, onDelete, onSetCategory }) => {
-    const [openId, setOpenId] = useState(null);
+const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, disabled }) => {
+    const [selectedSlot, setSelectedSlot] = useState(null);
 
-    const handleToggle = (id) => {
-        setOpenId((prev) => (prev === id ? null : id));
-    };
-
-    if (!slots || slots.length === 0) {
-        return <p className="page-subtitle">لا توجد مواقف بعد.</p>;
-    }
+    const liveSelectedSlot = selectedSlot
+        ? slots.find((s) => s._id === selectedSlot._id) || null
+        : null;
 
     return (
-        <div className="parking-grid">
-            {slots.map((slot) => (
-                <AdminSlotCard
-                    key={slot._id}
-                    slot={slot}
-                    cars={cars}
-                    isOpen={openId === slot._id}
-                    onToggle={handleToggle}
-                    onAssign={(s, carId) => {
-                        onAssign(s, carId);
-                        setOpenId(null);
-                    }}
-                    onReserve={(s) => {
-                        onReserve(s);
-                        setOpenId(null);
-                    }}
-                    onFree={(s) => {
-                        onFree(s);
-                        setOpenId(null);
-                    }}
-                    onDelete={(s) => {
-                        onDelete(s);
-                        setOpenId(null);
-                    }}
-                    onSetCategory={onSetCategory}
-                />
-            ))}
-        </div>
+        <>
+            <GarageFloorPlan
+                slots={slots}
+                emptyMessage="لا توجد مواقف بعد. شغّل seed:layout على السيرفر لإنشاء تخطيط الكراج مرة واحدة."
+                onSlotClick={setSelectedSlot}
+            />
+
+            <AdminSlotModal
+                slot={liveSelectedSlot}
+                cars={cars}
+                disabled={disabled}
+                onClose={() => setSelectedSlot(null)}
+                onAssign={(slot, carId) => onAssign(slot, carId)}
+                onReserve={(slot) => onReserve(slot)}
+                onFree={(slot) => {
+                    onFree(slot);
+                    setSelectedSlot(null);
+                }}
+            />
+        </>
     );
 };
 

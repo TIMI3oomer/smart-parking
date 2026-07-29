@@ -1,0 +1,18 @@
+module.exports = [
+    { slotNumber: "A1", category: "normal" },
+    { slotNumber: "A2", category: "normal" },
+    { slotNumber: "B1", category: "normal" },
+    { slotNumber: "B2", category: "normal" },
+    { slotNumber: "B3", category: "normal" },
+    { slotNumber: "C1", category: "normal" },
+    { slotNumber: "C2", category: "normal" },
+    { slotNumber: "C3", category: "normal" },
+    { slotNumber: "D1", category: "normal" },
+    { slotNumber: "D2", category: "normal" },
+    { slotNumber: "E1", category: "ceo" },
+    { slotNumber: "E2", category: "normal"},
+    { slotNumber: "F1", category: "blocking" },
+    { slotNumber: "F2", category: "blocking" },
+    { slotNumber: "G1", category: "normal" },
+    { slotNumber: "G2", category: "normal" },
+];
