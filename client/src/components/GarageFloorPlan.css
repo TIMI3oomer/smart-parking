@@ -28,6 +28,17 @@
     stroke-dasharray: 8 8;
 }
 
+.garage-plan__pole {
+    fill: #64748b;
+    stroke: #334155;
+    stroke-width: 2;
+}
+
+.garage-plan__pole-hatch {
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-width: 1.5;
+}
+
 .garage-plan__slot {
     cursor: pointer;
 }
@@ -56,13 +67,13 @@
 }
 
 .garage-plan__number {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
     fill: currentColor;
 }
 
 .garage-plan__status {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     fill: currentColor;
 }

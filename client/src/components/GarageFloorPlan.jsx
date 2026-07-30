@@ -1,4 +1,4 @@
-import { GARAGE_VIEWBOX, GARAGE_WALLS, GARAGE_DIVIDERS, GARAGE_SLOTS } from "../data/garageLayout";
+import { GARAGE_VIEWBOX, GARAGE_WALLS, GARAGE_DIVIDERS, GARAGE_POLES, GARAGE_SLOTS } from "../data/garageLayout";
 import "./GarageFloorPlan.css";
 
 const STATUS_CLASS = {
@@ -43,6 +43,15 @@ const CarIcon = ({ x, y, width, height }) => {
         </g>
     );
 };
+
+const Pole = ({ x, y, width, height }) => (
+    <g className="garage-plan__pole-group" aria-hidden="true">
+        <rect x={x} y={y} width={width} height={height} rx="2" className="garage-plan__pole" />
+        <line x1={x} y1={y} x2={x + width} y2={y + height} className="garage-plan__pole-hatch" />
+        <line x1={x + width} y1={y} x2={x} y2={y + height} className="garage-plan__pole-hatch" />
+    </g>
+);
+
 const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
     if (!slots || slots.length === 0) {
         return <p className="page-subtitle">{emptyMessage}</p>;
@@ -67,6 +76,10 @@ const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
                         x1={d.x1} y1={d.y1} x2={d.x2} y2={d.y2}
                         className="garage-plan__divider"
                     />
+                ))}
+
+                {GARAGE_POLES.map((p) => (
+                    <Pole key={p.id} x={p.x} y={p.y} width={p.width} height={p.height} />
                 ))}
 
                 {GARAGE_SLOTS.map((geo) => {
