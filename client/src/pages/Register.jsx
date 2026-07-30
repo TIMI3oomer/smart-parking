@@ -9,7 +9,7 @@ const Register = () => {
     const [form, setForm] = useState({
         name: "",
         email: "",
-        phone:"",
+        phone: "",
         password: "",
         confirmPassword: "",
     });
@@ -37,6 +37,11 @@ const Register = () => {
             return;
         }
 
+        if (form.password.length < 8) {
+            setError("يجب أن تتكون كلمة المرور من 8 أحرف على الأقل");
+            return;
+        }
+
         if (form.password !== form.confirmPassword) {
             setError("كلمتا المرور غير متطابقتين");
             return;
@@ -55,89 +60,113 @@ const Register = () => {
 
             navigate("/login");
         } catch (err) {
-            setError(err.message || "حدث خطأ أثناء إنشاء الحساب");
+            setError(err?.response?.data?.message || "حدث خطأ أثناء إنشاء الحساب");
         } finally {
             setSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 flex justify-center items-center px-6">
-            <div className="w-full max-w-md rounded-2xl bg-gray-800 p-8 shadow-2xl ring-1 ring-white/10">
-
-                <h2 className="text-center text-3xl font-bold text-white mb-8">
-                    إنشاء حساب
-                </h2>
+        <div className="auth-shell">
+            <div className="panel panel--padded stack auth-card">
+                <div className="auth-card__header">
+                    <h2 className="page-title">إنشاء حساب</h2>
+                    <p className="page-subtitle">أدخل بياناتك لإنشاء حساب جديد.</p>
+                </div>
 
                 {error && (
-                    <div className="mb-4 rounded bg-red-500/10 p-3 text-red-400 text-center">
+                    <p className="page-error" role="alert" aria-live="assertive">
                         {error}
-                    </div>
+                    </p>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="stack">
+                    <div className="field-group">
+                        <label htmlFor="name" className="field-label">الاسم</label>
+                        <input
+                            id="name"
+                            type="text"
+                            name="name"
+                            className="input"
+                            placeholder="الاسم الكامل"
+                            value={form.name}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            autoComplete="name"
+                        />
+                    </div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="الاسم"
-                        value={form.name}
-                        onChange={handleChange}
-                        className="w-full rounded-md bg-white/5 px-4 py-3 text-white outline outline-1 outline-white/10 focus:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    />
+                    <div className="field-group">
+                        <label htmlFor="email" className="field-label">البريد الإلكتروني</label>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            className="input"
+                            placeholder="البريد الإلكتروني"
+                            value={form.email}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            autoComplete="email"
+                        />
+                    </div>
 
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="البريد الإلكتروني"
-                        value={form.email}
-                        onChange={handleChange}
-                        className="w-full rounded-md bg-white/5 px-4 py-3 text-white outline outline-1 outline-white/10 focus:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    />
-                    <input 
-                    type="phone"
-                    name="phone"
-                    placeholder="رقم الهاتف"
-                    value={form.phone}
-                    onChange={handleChange}
-                    className="w-full rounded-md bg-white/5 px-4 py-3 text-white outline outline-1 outline-white/10 focus:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    />
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="كلمة المرور"
-                        value={form.password}
-                        onChange={handleChange}
-                        className="w-full rounded-md bg-white/5 px-4 py-3 text-white outline outline-1 outline-white/10 focus:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    />
+                    <div className="field-group">
+                        <label htmlFor="phone" className="field-label">رقم الهاتف</label>
+                        <input
+                            id="phone"
+                            type="tel"
+                            name="phone"
+                            className="input"
+                            placeholder="رقم الهاتف"
+                            value={form.phone}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            autoComplete="tel"
+                        />
+                    </div>
 
-                    <input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="تأكيد كلمة المرور"
-                        value={form.confirmPassword}
-                        onChange={handleChange}
-                        className="w-full rounded-md bg-white/5 px-4 py-3 text-white outline outline-1 outline-white/10 focus:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    />
+                    <div className="field-group">
+                        <label htmlFor="password" className="field-label">كلمة المرور</label>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            className="input"
+                            placeholder="كلمة المرور"
+                            value={form.password}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            autoComplete="new-password"
+                            aria-describedby="password-hint"
+                        />
+                        <span id="password-hint" className="field-hint">8 أحرف على الأقل</span>
+                    </div>
 
-                    <button
-                        disabled={submitting}
-                        className="w-full rounded-md bg-indigo-500 py-3 font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60 transition duration-200"
-                    >
-                        {submitting ? "جارٍ إنشاء الحساب..." : "إنشاء حساب"}
+                    <div className="field-group">
+                        <label htmlFor="confirmPassword" className="field-label">تأكيد كلمة المرور</label>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            name="confirmPassword"
+                            className="input"
+                            placeholder="تأكيد كلمة المرور"
+                            value={form.confirmPassword}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            autoComplete="new-password"
+                        />
+                    </div>
+
+                    <button type="submit" className="btn btn--primary" disabled={submitting}>
+                        {submitting ? "جارٍ إنشاء الحساب…" : "إنشاء حساب"}
                     </button>
                 </form>
 
-                <p className="mt-6 text-center text-gray-400">
+                <p className="auth-card__footer">
                     لديك حساب بالفعل؟{" "}
-                    <Link
-                        to="/login"
-                        className="text-indigo-400 hover:text-indigo-300"
-                    >
-                        تسجيل الدخول
-                    </Link>
+                    <Link to="/login" className="auth-card__link">تسجيل الدخول</Link>
                 </p>
-
             </div>
         </div>
     );

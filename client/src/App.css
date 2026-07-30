@@ -175,6 +175,43 @@
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
 }
+
+.auth-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem 1.75rem;
+  gap: 1.25rem;
+}
+
+.auth-card__header {
+  text-align: center;
+}
+
+.auth-card__footer {
+  margin: 0;
+  text-align: center;
+  color: #475467;
+  font-size: 0.95rem;
+}
+
+.auth-card__link {
+  color: #0891b2;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-card__link:hover {
+  text-decoration: underline;
+}
 .bay {
   position: relative;
   flex: 0 0 auto;
