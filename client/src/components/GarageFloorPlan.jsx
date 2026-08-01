@@ -150,8 +150,8 @@ const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
                 })}
 
                 <g className="garage-plan__marker garage-plan__marker--in">
-                    <rect x="170" y="-72" width="160" height="34" rx="17" />
-                    <text x="250" y="-49" textAnchor="middle">⬇ مدخل</text>
+                    <rect x="322" y="-72" width="160" height="34" rx="17" />
+                    <text x="402" y="-49" textAnchor="middle">⬇ مدخل</text>
                 </g>
             </svg>
         </div>
