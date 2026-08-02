@@ -12,7 +12,7 @@ router.get("/phone/:phone", protect, requireAdmin, getUserByPhone);
 
 router.put("/:id", protect, updateUser);
 
-router.post("/", createUser);
+router.post("/", protect, requireAdmin, createUser);
 
 router.delete("/:id", protect, requireAdmin, deleteUser);
 

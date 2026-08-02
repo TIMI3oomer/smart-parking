@@ -1,7 +1,34 @@
 const mongoose = require("mongoose");
 const Slot = require("../models/ParkingSlot");
+const Car = require("../models/Car");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// The "ceo" category slot (J1) is permanently reserved for the CEO. It is
+// never reservable, occupiable, or assignable through the app by anyone —
+// including admins — via these endpoints. There is no per-request exception;
+// if this ever needs to change (e.g. an admin checking the CEO's own car in),
+// that would need a dedicated, explicitly-audited action rather than reusing
+// these general-purpose endpoints.
+const CEO_SLOT_MESSAGE = "هذا الموقف مخصص حصريًا للمدير العام ولا يمكن حجزه أو إشغاله";
+
+// Enforces "each user occupies/reserves at most one slot at a time" (matches
+// the one-car-per-user assumption). Looks both at reservedFor (set by
+// reserve/occupy) and at the owner of whatever car is currently assigned to a
+// slot (set by assignCarToSlot), across every non-empty slot except the one
+// being acted on.
+const findUserActiveSlot = async (userId, excludeSlotId) => {
+    const slots = await Slot.find({
+        status: { $in: ["reserved", "occupied"] },
+        ...(excludeSlotId ? { _id: { $ne: excludeSlotId } } : {}),
+    }).populate({ path: "currentCar", select: "owner" });
+
+    return slots.find(
+        (s) =>
+            (s.reservedFor && String(s.reservedFor) === String(userId)) ||
+            (s.currentCar?.owner && String(s.currentCar.owner) === String(userId))
+    );
+};
 
 const handleServerError = (res, error, fallback = "حدث خطأ ما") => {
     console.error(error);
@@ -64,12 +91,25 @@ const reserveSlot = async (req, res) => {
             return res.status(400).json({ message: "الموقف غير متاح" });
         }
 
+        if (slot.category === "ceo") {
+            return res.status(403).json({ message: CEO_SLOT_MESSAGE });
+        }
+
         if (req.body.userId && !isValidId(req.body.userId)) {
             return res.status(400).json({ message: "معرف المستخدم غير صالح" });
         }
 
+        const targetUserId = req.body.userId || req.user.id;
+
+        const alreadyHasSlot = await findUserActiveSlot(targetUserId, slot._id);
+        if (alreadyHasSlot) {
+            return res.status(409).json({
+                message: `هذا المستخدم لديه موقف آخر بالفعل (${alreadyHasSlot.slotNumber}) — مستخدم واحد يمكنه شغل موقف واحد فقط`,
+            });
+        }
+
         slot.status = "reserved";
-        slot.reservedFor = req.body.userId || req.user.id;
+        slot.reservedFor = targetUserId;
         await slot.save();
 
         res.json(await populateSlot(Slot.findById(slot._id)));
@@ -94,6 +134,17 @@ const occupySlot = async (req, res) => {
             return res.status(400).json({ message: "الموقف غير متاح" });
         }
 
+        if (slot.category === "ceo") {
+            return res.status(403).json({ message: CEO_SLOT_MESSAGE });
+        }
+
+        const alreadyHasSlot = await findUserActiveSlot(req.user.id, slot._id);
+        if (alreadyHasSlot) {
+            return res.status(409).json({
+                message: `لديك موقف آخر بالفعل (${alreadyHasSlot.slotNumber}) — يمكنك شغل موقف واحد فقط في نفس الوقت`,
+            });
+        }
+
         slot.status = "occupied";
         slot.reservedFor = req.user.id;
         await slot.save();
@@ -115,6 +166,15 @@ const assignCarToSlot = async (req, res) => {
             return res.status(400).json({ message: "معرف الموقف غير صالح" });
         }
 
+        const targetSlot = await Slot.findById(req.params.id);
+        if (!targetSlot) {
+            return res.status(404).json({ message: "الموقف غير موجود" });
+        }
+
+        if (targetSlot.category === "ceo") {
+            return res.status(403).json({ message: CEO_SLOT_MESSAGE });
+        }
+
         const alreadyParkedElsewhere = await Slot.findOne({
             currentCar: carId,
             _id: { $ne: req.params.id },
@@ -122,6 +182,18 @@ const assignCarToSlot = async (req, res) => {
         if (alreadyParkedElsewhere) {
             return res.status(409).json({
                 message: `هذه السيارة معينة بالفعل للموقف ${alreadyParkedElsewhere.slotNumber}`,
+            });
+        }
+
+        const car = await Car.findById(carId).select("owner");
+        if (!car) {
+            return res.status(404).json({ message: "السيارة غير موجودة" });
+        }
+
+        const alreadyHasSlot = await findUserActiveSlot(car.owner, req.params.id);
+        if (alreadyHasSlot) {
+            return res.status(409).json({
+                message: `مالك هذه السيارة لديه موقف آخر بالفعل (${alreadyHasSlot.slotNumber}) — مستخدم واحد يمكنه شغل موقف واحد فقط`,
             });
         }
 

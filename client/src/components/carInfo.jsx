@@ -52,8 +52,14 @@ const CarInfo = ({ slot, onClose, onOccupy, onFree, currentUserId, disabled }) =
                     <p className="slot-modal__section">هذا الموقف شاغر.</p>
                 )}
 
+                {slot.category === "ceo" && (
+                    <p className="slot-modal__section slot-modal__category">
+                        هذا الموقف محجوز بشكل دائم للمدير العام ولا يمكن حجزه أو إشغاله من التطبيق.
+                    </p>
+                )}
+
                 <div className="slot-actions">
-                    {slot.status === "empty" && (
+                    {slot.status === "empty" && slot.category !== "ceo" && (
                         <button className="btn btn--primary" onClick={() => onOccupy(slot)} disabled={disabled}>
                             إشغال هذا الموقف
                         </button>

@@ -18,6 +18,12 @@ const slotRoutes = require("./routes/slotRoutes");
 
 const app = express();
 
+if (process.env.TRUST_PROXY) {
+    const raw = process.env.TRUST_PROXY;
+    const asNumber = Number(raw);
+    app.set("trust proxy", Number.isNaN(asNumber) ? raw : asNumber);
+}
+
 const frameAncestors = (process.env.EMBED_ALLOWED_ORIGINS || "")
     .split(",")
     .map((origin) => origin.trim())

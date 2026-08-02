@@ -12,6 +12,9 @@ const Register = () => {
         phone: "",
         password: "",
         confirmPassword: "",
+        carModel: "",
+        carPlate: "",
+        carColor: "",
     });
 
     const [error, setError] = useState("");
@@ -31,9 +34,11 @@ const Register = () => {
             !form.name.trim() ||
             !form.email.trim() ||
             !form.phone.trim() ||
-            !form.password
+            !form.password ||
+            !form.carModel.trim() ||
+            !form.carPlate.trim()
         ) {
-            setError("يرجى تعبئة جميع الحقول");
+            setError("يرجى تعبئة جميع الحقول، بما في ذلك بيانات السيارة (الطراز ورقم اللوحة)");
             return;
         }
 
@@ -56,6 +61,9 @@ const Register = () => {
                 email: form.email,
                 password: form.password,
                 phone: form.phone,
+                carModel: form.carModel,
+                carPlate: form.carPlate,
+                carColor: form.carColor,
             });
 
             navigate("/login");
@@ -155,6 +163,55 @@ const Register = () => {
                             onChange={handleChange}
                             disabled={submitting}
                             autoComplete="new-password"
+                        />
+                    </div>
+
+                    <div className="field-group">
+                        <label className="field-label" style={{ marginTop: "0.5rem" }}>
+                            بيانات السيارة
+                        </label>
+                        <p className="field-hint">كل مستخدم لديه سيارة واحدة فقط مسجّلة في النظام.</p>
+                    </div>
+
+                    <div className="field-group">
+                        <label htmlFor="carModel" className="field-label">طراز السيارة</label>
+                        <input
+                            id="carModel"
+                            type="text"
+                            name="carModel"
+                            className="input"
+                            placeholder="مثال: تويوتا كورولا"
+                            value={form.carModel}
+                            onChange={handleChange}
+                            disabled={submitting}
+                        />
+                    </div>
+
+                    <div className="field-group">
+                        <label htmlFor="carPlate" className="field-label">رقم اللوحة</label>
+                        <input
+                            id="carPlate"
+                            type="text"
+                            name="carPlate"
+                            className="input"
+                            placeholder="رقم لوحة السيارة"
+                            value={form.carPlate}
+                            onChange={handleChange}
+                            disabled={submitting}
+                        />
+                    </div>
+
+                    <div className="field-group">
+                        <label htmlFor="carColor" className="field-label">لون السيارة (اختياري)</label>
+                        <input
+                            id="carColor"
+                            type="text"
+                            name="carColor"
+                            className="input"
+                            placeholder="مثال: أبيض"
+                            value={form.carColor}
+                            onChange={handleChange}
+                            disabled={submitting}
                         />
                     </div>
 

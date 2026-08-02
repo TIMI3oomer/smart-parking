@@ -1,5 +1,3 @@
-
-
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
@@ -9,7 +7,7 @@ const ADMIN = {
     name: "Admin",
     email: "admin@example.com",
     password: "Admin123", // change before running
-    Phone: "0000000000",
+    phone: "0000000000",
 };
 
 const run = async () => {
@@ -31,7 +29,7 @@ const run = async () => {
             name: ADMIN.name,
             email: ADMIN.email,
             password: hashedPassword,
-            Phone: ADMIN.Phone,
+            phone: ADMIN.phone,
             role: "admin",
         });
         console.log(`Created admin account ${ADMIN.email}.`);

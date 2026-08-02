@@ -20,6 +20,7 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onReserve, onFree, disa
     const isReserved = status === "reserved";
     const car = slot.currentCar;
     const categoryLabel = CATEGORY_LABELS[slot.category];
+    const isCeoSlot = slot.category === "ceo";
 
     const handleAssign = () => {
         if (!selectedCarId) return;
@@ -78,6 +79,10 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onReserve, onFree, disa
                             </button>
                         </div>
                     </>
+                ) : isCeoSlot ? (
+                    <p className="slot-modal__section">
+                        هذا الموقف محجوز بشكل دائم للمدير العام ولا يمكن حجزه أو تعيين سيارة له من التطبيق.
+                    </p>
                 ) : (
                     <>
                         <p className="slot-modal__section">هذا الموقف شاغر.</p>

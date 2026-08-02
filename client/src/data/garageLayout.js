@@ -1,32 +1,11 @@
-// Frontend geometry data for the garage floor plan (ESM).
-//
-// Layout:
-//   LEFT column (x=75):   A0 (single car) -> pole -> 5 groups of 3 (A..E)
-//   RIGHT column (x=600): 5 groups of 3 (J..F), top to bottom. J is nearest
-//                          the wall/entrance; J1 = the CEO slot.
-//   MIDDLE column (x=478): 3 cars stacked vertically (M1-M3), shifted well
-//                          below the CEO's row so it's clearly not next to
-//                          (and can never be mistaken for blocking) the CEO.
-//   BLOCKING column (x=350): 4 slots aligned with the I/H/G/F bands on the
-//                          right side, deliberately stopping before J so the
-//                          CEO slot can never be blocked.
-//
-// Everything is bigger than the previous version (130x55 cars instead of
-// 118x48, larger poles, more gaps) and the wall is now a plain rectangle —
-// since M no longer pokes up near the roofline, the raised notch that used
-// to cause slots rendering outside the walls isn't needed anymore, which
-// also makes this much easier to keep correct.
 
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
 export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z";
 
-// No dashed dividers — the pole markers below do that job visually.
 export const GARAGE_DIVIDERS = [];
 
-// Structural pillars (purely decorative, not clickable).
 export const GARAGE_POLES = [
-    // Above A0, at the very top of the left column
     { id: "pole-l-top", x: 124, y: 93, width: 32, height: 32 },
 
     // Between the 5 left-side groups (A-B, B-C, C-D, D-E)
@@ -35,7 +14,6 @@ export const GARAGE_POLES = [
     { id: "pole-l-2", x: 124, y: 768, width: 32, height: 32 },
     { id: "pole-l-3", x: 124, y: 993, width: 32, height: 32 },
 
-    // Between the 5 right-side groups (J-I, I-H, H-G, G-F)
     { id: "pole-r-0", x: 649, y: 215, width: 32, height: 32 },
     { id: "pole-r-1", x: 649, y: 440, width: 32, height: 32 },
     { id: "pole-r-2", x: 649, y: 665, width: 32, height: 32 },
@@ -43,7 +21,6 @@ export const GARAGE_POLES = [
 ];
 
 export const GARAGE_SLOTS = [
-    // ---- LEFT: A0 (single car, next to the new top pole), then A..E groups ----
     { slotNumber: "A0", category: "normal", x: 75, y: 30, width: 130, height: 55, rotation: 0 },
 
     { slotNumber: "A1", category: "normal", x: 75, y: 133, width: 130, height: 55, rotation: 0 },

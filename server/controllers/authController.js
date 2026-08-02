@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Car = require("../models/Car");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
@@ -10,11 +11,13 @@ const DUMMY_HASH = "$2b$10$CwTycUXWue0Thq9StjUM0uJ8j8ZQvPT6c1YyfiV0nY8v2pxL7z9Sq
 
 const register = async (req, res) => {
     try {
-        const { name, email, password, phone } = req.body;
+        const { name, email, password, phone, carModel, carPlate, carColor } = req.body;
 
-        if (!name || !email || !password || !phone) {
+        // Each employee is assumed to own exactly one car, so its info is
+        // collected up front at sign-up rather than added later.
+        if (!name || !email || !password || !phone || !carModel || !carPlate) {
             return res.status(400).json({
-                message: "يرجى تعبئة جميع الحقول المطلوبة",
+                message: "يرجى تعبئة جميع الحقول المطلوبة، بما في ذلك بيانات السيارة (الطراز ورقم اللوحة)",
             });
         }
 
@@ -27,6 +30,11 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل" });
         }
 
+        const normalizedPlate = String(carPlate).trim().toUpperCase();
+        if (!normalizedPlate) {
+            return res.status(400).json({ message: "رقم لوحة السيارة مطلوب" });
+        }
+
         const existingUser = await User.findOne({
             $or: [{ email: normalizedEmail }, { phone: String(phone).trim() }],
         });
@@ -35,6 +43,11 @@ const register = async (req, res) => {
             return res.status(409).json({
                 message: "البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل",
             });
+        }
+
+        const existingCar = await Car.findOne({ plate: normalizedPlate });
+        if (existingCar) {
+            return res.status(409).json({ message: "رقم لوحة السيارة مستخدم بالفعل" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -47,6 +60,26 @@ const register = async (req, res) => {
             role: "employee",
         });
 
+        // Mongoose here isn't guaranteed to run inside a replica-set (needed
+        // for multi-document transactions), so on car-creation failure we
+        // roll back the just-created user manually to avoid a user account
+        // left permanently without its (required) car.
+        let car;
+        try {
+            car = await Car.create({
+                model: String(carModel).trim(),
+                plate: normalizedPlate,
+                color: carColor ? String(carColor).trim() : undefined,
+                owner: user._id,
+            });
+        } catch (carError) {
+            await User.findByIdAndDelete(user._id);
+            throw carError;
+        }
+
+        user.car = car._id;
+        await user.save();
+
         res.status(201).json({
             message: "تم إنشاء الحساب بنجاح",
             user: {
@@ -56,11 +89,22 @@ const register = async (req, res) => {
                 role: user.role,
                 phone: user.phone,
             },
+            car: {
+                _id: car._id,
+                model: car.model,
+                plate: car.plate,
+                color: car.color,
+            },
         });
     } catch (error) {
         console.error(error);
         if (error.code === 11000) {
-            return res.status(409).json({ message: "البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل" });
+            const field = Object.keys(error.keyPattern || {})[0];
+            const message =
+                field === "plate"
+                    ? "رقم لوحة السيارة مستخدم بالفعل"
+                    : "البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل";
+            return res.status(409).json({ message });
         }
         res.status(500).json({
             message: "حدث خطأ أثناء إنشاء الحساب",

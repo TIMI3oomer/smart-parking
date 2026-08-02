@@ -41,8 +41,16 @@ export const AuthProvider = ({ children }) => {
     // Registering only creates the account — it does not log the person in
     // (the backend register endpoint doesn't return a token), so callers
     // should navigate to /login afterwards, same as Register.jsx already does.
-    const register = async ({ name, email, password, phone }) => {
-        const res = await api.post("/auth/register", { name, email, password, phone });
+    const register = async ({ name, email, password, phone, carModel, carPlate, carColor }) => {
+        const res = await api.post("/auth/register", {
+            name,
+            email,
+            password,
+            phone,
+            carModel,
+            carPlate,
+            carColor,
+        });
         return res.data.user;
     };
 
