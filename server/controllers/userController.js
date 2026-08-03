@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const Car = require("../models/Car");
+const Slot = require("../models/ParkingSlot");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -41,25 +43,58 @@ const getUserByPhone = async (req, res) => {
 };
 const createUser = async (req, res) => {
     try {
-        const { name, email, password,phone } = req.body;
+        const { name, email, password, phone, carModel, carPlate, carColor } = req.body;
 
-        if (!name || !email || !password || !phone) {
-            return res.status(400).json({ message: "الاسم والبريد الإلكتروني وكلمة المرور ورقم الهاتف مطلوبة" });
+        if (!name || !email || !password || !phone || !carModel || !carPlate) {
+            return res.status(400).json({
+                message: "الاسم والبريد الإلكتروني وكلمة المرور ورقم الهاتف وبيانات السيارة (الطراز واللوحة) مطلوبة",
+            });
         }
         if (typeof password !== "string" || password.length < 8) {
             return res.status(400).json({ message: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل" });
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedPhone = String(phone).trim();
+        const normalizedPlate = String(carPlate).trim().toUpperCase();
+
+        const existingUser = await User.findOne({
+            $or: [{ email: normalizedEmail }, { phone: normalizedPhone }],
+        });
+        if (existingUser) {
+            return res.status(409).json({ message: "البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل" });
+        }
+
+        const existingCar = await Car.findOne({ plate: normalizedPlate });
+        if (existingCar) {
+            return res.status(409).json({ message: "رقم لوحة السيارة مستخدم بالفعل" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = new User({
             name: String(name).trim(),
-            email: String(email).trim().toLowerCase(),
+            email: normalizedEmail,
             password: hashedPassword,
-            phone: String(phone).trim(),
+            phone: normalizedPhone,
             role: "employee",
         });
+        await user.save();
 
+        let car;
+        try {
+            car = await Car.create({
+                model: String(carModel).trim(),
+                plate: normalizedPlate,
+                color: carColor ? String(carColor).trim() : undefined,
+                owner: user._id,
+            });
+        } catch (carError) {
+            await User.findByIdAndDelete(user._id);
+            throw carError;
+        }
+
+        user.car = car._id;
         await user.save();
 
         res.status(201).json({
@@ -68,6 +103,12 @@ const createUser = async (req, res) => {
             email: user.email,
             phone: user.phone,
             role: user.role,
+            car: {
+                _id: car._id,
+                model: car.model,
+                plate: car.plate,
+                color: car.color,
+            },
         });
     } catch (error) {
         handleServerError(res, error, "تعذر إنشاء المستخدم");
@@ -118,11 +159,30 @@ const deleteUser = async (req, res) => {
             return res.status(400).json({ message: "لا يمكنك حذف حسابك الخاص" });
         }
 
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
+        const userExists = await User.exists({ _id: req.params.id });
+        if (!userExists) {
             return res.status(404).json({ message: "المستخدم غير موجود" });
         }
-        res.json({ message: "تم حذف المستخدم بنجاح" });
+
+        const car = await Car.findOne({ owner: req.params.id });
+
+        await Slot.updateMany(
+            {
+                $or: [
+                    { reservedFor: req.params.id },
+                    ...(car ? [{ currentCar: car._id }] : []),
+                ],
+            },
+            { $set: { status: "empty", currentCar: null, reservedFor: null } }
+        );
+
+        if (car) {
+            await Car.findByIdAndDelete(car._id);
+        }
+
+        await User.findByIdAndDelete(req.params.id);
+
+        res.json({ message: "تم حذف المستخدم وسيارته بنجاح" });
     } catch (error) {
         handleServerError(res, error, "تعذر حذف المستخدم");
     }

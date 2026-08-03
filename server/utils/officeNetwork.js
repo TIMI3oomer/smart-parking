@@ -1,3 +1,22 @@
+// Detects whether a request is coming from the office network.
+//
+// IMPORTANT CAVEAT: browsers do NOT expose WiFi SSID/BSSID to JavaScript for
+// privacy/security reasons, so "is the user connected to the office WiFi"
+// can't be checked client-side. The only server-side signal we actually have
+// is the public IP address the request arrives from. This works well when
+// the office WiFi/router NATs everyone behind one (or a small, stable set
+// of) public IP address(es) or ranges — which is the common case for a
+// single-office setup — but it will NOT detect "close to the office" in the
+// geographic sense (e.g. someone in the parking lot on cellular data). If
+// that's needed later, it requires the Geolocation API on the client
+// (navigator.geolocation) compared against office coordinates, which is a
+// separate feature, not implemented here per current requirements.
+//
+// No third-party dependency is used; this is a small, dependency-free IPv4
+// CIDR matcher, configured via the OFFICE_ALLOWED_IPS env var (comma
+// separated list of single IPs and/or CIDR blocks, e.g.
+// "203.0.113.10,203.0.113.0/28").
+
 const ipv4ToLong = (ip) => {
     const parts = ip.split(".");
     if (parts.length !== 4) return null;

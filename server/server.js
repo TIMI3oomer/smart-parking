@@ -19,9 +19,10 @@ const slotRoutes = require("./routes/slotRoutes");
 const app = express();
 
 if (process.env.TRUST_PROXY) {
-    const raw = process.env.TRUST_PROXY;
-    const asNumber = Number(raw);
-    app.set("trust proxy", Number.isNaN(asNumber) ? raw : asNumber);
+    const trustProxy = Number.isNaN(Number(process.env.TRUST_PROXY))
+        ? process.env.TRUST_PROXY
+        : Number(process.env.TRUST_PROXY);
+    app.set("trust proxy", trustProxy);
 }
 
 const frameAncestors = (process.env.EMBED_ALLOWED_ORIGINS || "")
@@ -84,6 +85,15 @@ const loginLimiter = rateLimit({
     legacyHeaders: false,
     message: { message: "محاولات تسجيل دخول كثيرة جدًا من هذا الجهاز، حاول مرة أخرى لاحقًا" },
 });
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "عدد كبير جدًا من الطلبات، حاول مرة أخرى بعد قليل" },
+});
+app.use("/api", apiLimiter);
 
 connectDB();
 

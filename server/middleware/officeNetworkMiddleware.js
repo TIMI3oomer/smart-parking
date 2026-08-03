@@ -1,4 +1,5 @@
 const { isOnOfficeNetwork } = require("../utils/officeNetwork");
+
 const requireOfficeNetwork = (req, res, next) => {
     if (!isOnOfficeNetwork(req)) {
         return res.status(403).json({

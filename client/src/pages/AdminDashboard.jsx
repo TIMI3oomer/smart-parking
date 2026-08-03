@@ -1,31 +1,45 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
 import AdminParkingGrid from "../components/AdminParkingGrid";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
-const createUserInitialState = { name: "", email: "", password: "", Phone: "" };
-const createCarInitialState = { model: "", plate: "", color: "", owner: "" };
+// Slots list refetch interval so every admin sees reserve/occupy/free actions
+// made by anyone else without needing to manually reload the page.
+const LIVE_REFRESH_MS = 4000;
+
+const createPersonInitialState = {
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    carModel: "",
+    carPlate: "",
+    carColor: "",
+};
 
 const AdminDashboard = () => {
     const [slots, setSlots] = useState([]);
     const [cars, setCars] = useState([]);
     const [users, setUsers] = useState([]);
-    const [newUser, setNewUser] = useState(createUserInitialState);
-    const [newCar, setNewCar] = useState(createCarInitialState);
-    const [activeCreateForm, setActiveCreateForm] = useState("user");
+    const [newPerson, setNewPerson] = useState(createPersonInitialState);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null); // { type: "user" | "car", entity }
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const isAdmin = user?.role === "admin";
     const currentUserId = user?._id ?? user?.id;
+    const isFetchingRef = useRef(false);
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async ({ silent } = {}) => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
         try {
             const [slotsRes, carsRes, usersRes] = await Promise.all([
                 api.get("/slot"),
@@ -37,9 +51,12 @@ const AdminDashboard = () => {
             setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
             setError("");
         } catch (err) {
-            setError(getErrorMessage(err, "تعذر تحميل البيانات"));
+            if (!silent) {
+                setError(getErrorMessage(err, "تعذر تحميل البيانات"));
+            }
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
+            isFetchingRef.current = false;
         }
     }, []);
 
@@ -47,18 +64,37 @@ const AdminDashboard = () => {
         void fetchData();
     }, [fetchData]);
 
-    const handleCreateUser = async (e) => {
+    // Live refresh: poll in the background so reservations/occupancy made by
+    // other users show up here without a manual reload.
+    useEffect(() => {
+        const interval = setInterval(() => {
+            void fetchData({ silent: true });
+        }, LIVE_REFRESH_MS);
+        return () => clearInterval(interval);
+    }, [fetchData]);
+
+    const handleCreatePerson = async (e) => {
         e.preventDefault();
 
         const payload = {
-            name: newUser.name.trim(),
-            email: newUser.email.trim(),
-            password: newUser.password,
-            Phone: newUser.Phone.trim(),
+            name: newPerson.name.trim(),
+            email: newPerson.email.trim(),
+            password: newPerson.password,
+            phone: newPerson.phone.trim(),
+            carModel: newPerson.carModel.trim(),
+            carPlate: newPerson.carPlate.trim(),
+            carColor: newPerson.carColor.trim(),
         };
 
-        if (!payload.name || !payload.email || !payload.password || !payload.Phone) {
-            setError("جميع حقول المستخدم مطلوبة");
+        if (
+            !payload.name ||
+            !payload.email ||
+            !payload.password ||
+            !payload.phone ||
+            !payload.carModel ||
+            !payload.carPlate
+        ) {
+            setError("جميع الحقول مطلوبة، بما في ذلك بيانات السيارة (الطراز واللوحة)");
             return;
         }
         if (payload.password.length < 8) {
@@ -70,38 +106,10 @@ const AdminDashboard = () => {
         setError("");
         try {
             await api.post("/users", payload);
-            setNewUser(createUserInitialState);
+            setNewPerson(createPersonInitialState);
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر إنشاء المستخدم"));
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleCreateCar = async (e) => {
-        e.preventDefault();
-
-        const payload = {
-            model: newCar.model.trim(),
-            plate: newCar.plate.trim(),
-            color: newCar.color.trim(),
-            owner: newCar.owner,
-        };
-
-        if (!payload.model || !payload.plate || !payload.owner) {
-            setError("الطراز ورقم اللوحة والمالك حقول مطلوبة");
-            return;
-        }
-
-        setSubmitting(true);
-        setError("");
-        try {
-            await api.post("/cars", payload);
-            setNewCar(createCarInitialState);
-            await fetchData();
-        } catch (err) {
-            setError(getErrorMessage(err, "تعذر إنشاء السيارة"));
         } finally {
             setSubmitting(false);
         }
@@ -148,13 +156,15 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleDeleteCar = async (car) => {
-        if (!window.confirm(`حذف السيارة ${car.plate}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+    const confirmDeleteCar = async () => {
+        const car = deleteTarget?.entity;
+        if (!car) return;
 
         setSubmitting(true);
         setError("");
         try {
             await api.delete(`/cars/${car._id}`);
+            setDeleteTarget(null);
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر حذف السيارة"));
@@ -163,17 +173,15 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleDeleteUser = async (person) => {
-        if (person._id === currentUserId) {
-            setError("لا يمكنك حذف حسابك الخاص");
-            return;
-        }
-        if (!window.confirm(`حذف حساب ${person.name}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+    const confirmDeleteUser = async () => {
+        const person = deleteTarget?.entity;
+        if (!person) return;
 
         setSubmitting(true);
         setError("");
         try {
             await api.delete(`/users/${person._id}`);
+            setDeleteTarget(null);
             await fetchData();
         } catch (err) {
             setError(getErrorMessage(err, "تعذر حذف المستخدم"));
@@ -187,8 +195,6 @@ const AdminDashboard = () => {
         [slots]
     );
     const availableCars = cars.filter((car) => !parkedCarIds.has(car._id));
-
-    const createFormTitle = activeCreateForm === "user" ? "إضافة مستخدم" : "إضافة سيارة";
 
     if (!isAdmin) {
         return (
@@ -237,93 +243,58 @@ const AdminDashboard = () => {
             />
 
             <div className="admin-actions panel panel--padded">
-                <div className="admin-actions__buttons" role="tablist" aria-label="ما تريد إضافته">
-                    <button type="button" role="tab" aria-selected={activeCreateForm === "user"}
-                        className={`btn ${activeCreateForm === "user" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("user")}>
-                        إضافة مستخدم
-                    </button>
-                    <button type="button" role="tab" aria-selected={activeCreateForm === "car"}
-                        className={`btn ${activeCreateForm === "car" ? "btn--primary" : "btn--ghost"}`}
-                        onClick={() => setActiveCreateForm("car")}>
-                        إضافة سيارة
-                    </button>
-                </div>
-
                 <div className="admin-actions__form">
-                    <h3 className="page-title" style={{ fontSize: "1.1rem" }}>{createFormTitle}</h3>
+                    <h3 className="page-title" style={{ fontSize: "1.1rem" }}>إضافة موظف وسيارته</h3>
+                    <p className="page-subtitle">كل موظف يمتلك سيارة واحدة فقط، لذا تُنشأان معًا دفعة واحدة.</p>
 
-                    {activeCreateForm === "user" && (
-                        <form onSubmit={handleCreateUser} className="admin-form-grid">
-                            <div className="field-group">
-                                <label htmlFor="user-name" className="field-label">الاسم الكامل</label>
-                                <input id="user-name" className="input" value={newUser.name}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, name: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="user-email" className="field-label">البريد الإلكتروني</label>
-                                <input id="user-email" className="input" type="email" value={newUser.email}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, email: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="user-password" className="field-label">كلمة المرور</label>
-                                <input id="user-password" className="input" type="password" value={newUser.password}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, password: e.target.value }))}
-                                    disabled={submitting} aria-describedby="user-password-hint" />
-                                <span id="user-password-hint" className="field-hint">8 أحرف على الأقل</span>
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
-                                <input id="user-phone" className="input" value={newUser.Phone}
-                                    onChange={(e) => setNewUser((c) => ({ ...c, Phone: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "جارٍ الإنشاء…" : "إنشاء المستخدم"}
-                            </button>
-                        </form>
-                    )}
-
-                    {activeCreateForm === "car" && (
-                        <form onSubmit={handleCreateCar} className="admin-form-grid">
-                            <div className="field-group">
-                                <label htmlFor="car-model" className="field-label">نوع السيارة</label>
-                                <input id="car-model" className="input" value={newCar.model}
-                                    onChange={(e) => setNewCar((c) => ({ ...c, model: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="car-plate" className="field-label">رقم اللوحة</label>
-                                <input id="car-plate" className="input" value={newCar.plate}
-                                    onChange={(e) => setNewCar((c) => ({ ...c, plate: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="car-color" className="field-label">اللون</label>
-                                <input id="car-color" className="input" value={newCar.color}
-                                    onChange={(e) => setNewCar((c) => ({ ...c, color: e.target.value }))}
-                                    disabled={submitting} />
-                            </div>
-                            <div className="field-group">
-                                <label htmlFor="car-owner" className="field-label">المالك</label>
-                                <select id="car-owner" className="select" value={newCar.owner}
-                                    onChange={(e) => setNewCar((c) => ({ ...c, owner: e.target.value }))}
-                                    disabled={submitting}>
-                                    <option value="">اختر المالك</option>
-                                    {users.map((person) => (
-                                        <option key={person._id} value={person._id}>
-                                            {person.name} ({person.Phone})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <button className="btn btn--primary" type="submit" disabled={submitting}>
-                                {submitting ? "جارٍ الإنشاء…" : "إنشاء السيارة"}
-                            </button>
-                        </form>
-                    )}
+                    <form onSubmit={handleCreatePerson} className="admin-form-grid">
+                        <div className="field-group">
+                            <label htmlFor="user-name" className="field-label">الاسم الكامل</label>
+                            <input id="user-name" className="input" value={newPerson.name}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, name: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="user-email" className="field-label">البريد الإلكتروني</label>
+                            <input id="user-email" className="input" type="email" value={newPerson.email}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, email: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="user-password" className="field-label">كلمة المرور</label>
+                            <input id="user-password" className="input" type="password" value={newPerson.password}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, password: e.target.value }))}
+                                disabled={submitting} aria-describedby="user-password-hint" />
+                            <span id="user-password-hint" className="field-hint">8 أحرف على الأقل</span>
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
+                            <input id="user-phone" className="input" value={newPerson.phone}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, phone: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="car-model" className="field-label">طراز السيارة</label>
+                            <input id="car-model" className="input" value={newPerson.carModel}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, carModel: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="car-plate" className="field-label">رقم اللوحة</label>
+                            <input id="car-plate" className="input" value={newPerson.carPlate}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, carPlate: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <div className="field-group">
+                            <label htmlFor="car-color" className="field-label">لون السيارة (اختياري)</label>
+                            <input id="car-color" className="input" value={newPerson.carColor}
+                                onChange={(e) => setNewPerson((c) => ({ ...c, carColor: e.target.value }))}
+                                disabled={submitting} />
+                        </div>
+                        <button className="btn btn--primary" type="submit" disabled={submitting}>
+                            {submitting ? "جارٍ الإنشاء…" : "إنشاء الموظف والسيارة"}
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -341,7 +312,8 @@ const AdminDashboard = () => {
                                     {car.owner?.name ? ` · المالك: ${car.owner.name}` : ""}
                                 </span>
                                 <button type="button" className="btn btn--danger"
-                                    onClick={() => handleDeleteCar(car)} disabled={submitting}>
+                                    onClick={() => setDeleteTarget({ type: "car", entity: car })}
+                                    disabled={submitting}>
                                     حذف
                                 </button>
                             </li>
@@ -361,12 +333,12 @@ const AdminDashboard = () => {
                             return (
                                 <li key={person._id} className="manage-list__row">
                                     <span className="manage-list__info">
-                                        <strong>{person.name}</strong> — {person.Phone}
+                                        <strong>{person.name}</strong> — {person.phone}
                                         {person.role === "admin" ? " · مشرف" : ""}
                                         {isSelf ? " (أنت)" : ""}
                                     </span>
                                     <button type="button" className="btn btn--danger"
-                                        onClick={() => handleDeleteUser(person)}
+                                        onClick={() => setDeleteTarget({ type: "user", entity: person })}
                                         disabled={submitting || isSelf}
                                         title={isSelf ? "لا يمكنك حذف حسابك الخاص" : undefined}>
                                         حذف
@@ -377,6 +349,30 @@ const AdminDashboard = () => {
                     </ul>
                 )}
             </div>
+
+            {deleteTarget?.type === "car" && (
+                <ConfirmDeleteModal
+                    title={`حذف السيارة ${deleteTarget.entity.plate}`}
+                    description="لا يمكن التراجع عن هذا الإجراء."
+                    expectedValue={deleteTarget.entity.plate}
+                    confirmLabel="حذف السيارة"
+                    onCancel={() => setDeleteTarget(null)}
+                    onConfirm={confirmDeleteCar}
+                    disabled={submitting}
+                />
+            )}
+
+            {deleteTarget?.type === "user" && (
+                <ConfirmDeleteModal
+                    title={`حذف حساب ${deleteTarget.entity.name}`}
+                    description="سيتم حذف سيارته المسجلة أيضًا. لا يمكن التراجع عن هذا الإجراء."
+                    expectedValue={deleteTarget.entity.phone}
+                    confirmLabel="حذف المستخدم وسيارته"
+                    onCancel={() => setDeleteTarget(null)}
+                    onConfirm={confirmDeleteUser}
+                    disabled={submitting}
+                />
+            )}
         </div>
     );
 };

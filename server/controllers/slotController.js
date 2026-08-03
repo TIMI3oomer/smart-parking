@@ -4,19 +4,8 @@ const Car = require("../models/Car");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// The "ceo" category slot (J1) is permanently reserved for the CEO. It is
-// never reservable, occupiable, or assignable through the app by anyone —
-// including admins — via these endpoints. There is no per-request exception;
-// if this ever needs to change (e.g. an admin checking the CEO's own car in),
-// that would need a dedicated, explicitly-audited action rather than reusing
-// these general-purpose endpoints.
 const CEO_SLOT_MESSAGE = "هذا الموقف مخصص حصريًا للمدير العام ولا يمكن حجزه أو إشغاله";
 
-// Enforces "each user occupies/reserves at most one slot at a time" (matches
-// the one-car-per-user assumption). Looks both at reservedFor (set by
-// reserve/occupy) and at the owner of whatever car is currently assigned to a
-// slot (set by assignCarToSlot), across every non-empty slot except the one
-// being acted on.
 const findUserActiveSlot = async (userId, excludeSlotId) => {
     const slots = await Slot.find({
         status: { $in: ["reserved", "occupied"] },
@@ -32,6 +21,19 @@ const findUserActiveSlot = async (userId, excludeSlotId) => {
 
 const handleServerError = (res, error, fallback = "حدث خطأ ما") => {
     console.error(error);
+    if (error.code === 11000) {
+        if (error.keyPattern?.currentCar) {
+            return res.status(409).json({
+                message: "هذه السيارة معينة بالفعل لموقف آخر في نفس اللحظة",
+            });
+        }
+        if (error.keyPattern?.reservedFor) {
+            return res.status(409).json({
+                message: "هذا المستخدم يشغل أو يحجز موقفًا آخر بالفعل في نفس اللحظة",
+            });
+        }
+        return res.status(409).json({ message: "تعارض في البيانات، حاول مرة أخرى" });
+    }
     if (error.name === "CastError") {
         return res.status(400).json({ message: "صيغة المعرف غير صالحة" });
     }

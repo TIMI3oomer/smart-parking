@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../service/api";
 import { useAuth } from "../context/authContext";
 import ParkingGrid from "../components/parkingGrid";
 import CarInfo from "../components/carInfo";
+
+// How often to silently refetch slot state in the background, so a
+// reservation/occupancy made by someone else shows up here without the user
+// needing to manually reload the page.
+const LIVE_REFRESH_MS = 4000;
 
 const Dashboard = () => {
     const [slots, setSlots] = useState([]);
@@ -14,21 +19,32 @@ const Dashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const isAdmin = user?.role === "admin";
+    const isFetchingRef = useRef(false);
 
-    const loadSlots = useCallback(async () => {
+    const loadSlots = useCallback(async ({ silent } = {}) => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
         try {
             const res = await api.get("/slot");
             setSlots(Array.isArray(res.data) ? res.data : []);
             setError("");
         } catch {
-            setError("تعذر تحميل مواقف السيارات");
+            if (!silent) setError("تعذر تحميل مواقف السيارات");
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
+            isFetchingRef.current = false;
         }
     }, []);
 
     useEffect(() => {
         void loadSlots();
+    }, [loadSlots]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            void loadSlots({ silent: true });
+        }, LIVE_REFRESH_MS);
+        return () => clearInterval(interval);
     }, [loadSlots]);
 
     const handleOccupy = async (slot) => {
