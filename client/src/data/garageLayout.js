@@ -1,6 +1,6 @@
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
-export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z M560,10 L572,10 L572,360 L560,360 Z";
+export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z M560,10 L572,10 L572,360 L470,360 L470,336 L560,336 Z";
 
 export const GARAGE_DIVIDERS = [];
 
@@ -13,7 +13,6 @@ export const GARAGE_POLES = [
     { id: "pole-l-2", x: 124, y: 768, width: 32, height: 32 },
     { id: "pole-l-3", x: 124, y: 993, width: 32, height: 32 },
 
-    { id: "pole-r-0", x: 649, y: 318, width: 32, height: 32 },
     { id: "pole-r-1", x: 649, y: 543, width: 32, height: 32 },
     { id: "pole-r-2", x: 649, y: 768, width: 32, height: 32 },
     { id: "pole-r-3", x: 649, y: 993, width: 32, height: 32 },
@@ -68,9 +67,9 @@ export const GARAGE_SLOTS = [
     { slotNumber: "M2", category: "normal", x: 460, y: 128, width: 84, height: 80, rotation: 0 },
     { slotNumber: "M3", category: "normal", x: 460, y: 216, width: 84, height: 80, rotation: 0 },
 
-    // ---- BLOCKING column: shifted down to clear the M/wall pocket, top row now level with B1/J1 ----
-    { slotNumber: "BL1", category: "blocking", x: 350, y: 370, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL2", category: "blocking", x: 350, y: 595, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL3", category: "blocking", x: 350, y: 820, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL4", category: "blocking", x: 350, y: 1045, width: 80, height: 177, rotation: 0 },
+    // ---- BLOCKING column: shifted right + further down, clear of J1's row so it can't block it ----
+    { slotNumber: "BL1", category: "blocking", x: 365, y: 550, width: 80, height: 160, rotation: 0 },
+    { slotNumber: "BL2", category: "blocking", x: 365, y: 725, width: 80, height: 160, rotation: 0 },
+    { slotNumber: "BL3", category: "blocking", x: 365, y: 900, width: 80, height: 160, rotation: 0 },
+    { slotNumber: "BL4", category: "blocking", x: 365, y: 1075, width: 80, height: 160, rotation: 0 },
 ];
