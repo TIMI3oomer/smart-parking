@@ -6,7 +6,6 @@ const {
     getSlotById,
     assignCarToSlot,
     freeSlot,
-    reserveSlot,
     occupySlot,
 } = require("../controllers/slotController");
 const { protect } = require("../middleware/authMiddleware");
@@ -16,7 +15,6 @@ const { requireOfficeNetwork } = require("../middleware/officeNetworkMiddleware"
 router.get("/", protect, getAllSlots);
 router.get("/:id", protect, getSlotById);
 
-router.put("/:id/reserve", protect, requireAdmin, reserveSlot);
 router.put("/:id/occupy", protect, requireOfficeNetwork, occupySlot);
 router.put("/:id/assign", protect, requireAdmin, assignCarToSlot);
 router.put("/:id/free", protect, freeSlot);
