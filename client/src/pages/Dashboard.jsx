@@ -52,11 +52,11 @@ const Dashboard = () => {
         setError("");
         try {
             await api.put(`/slot/${slot._id}/occupy`);
-            setSelectedSlot(null);
             await loadSlots();
         } catch (err) {
             setError(err.response?.data?.message || "تعذر إشغال الموقف");
         } finally {
+            setSelectedSlot(null);
             setSubmitting(false);
         }
     };
@@ -66,11 +66,11 @@ const Dashboard = () => {
         setError("");
         try {
             await api.put(`/slot/${slot._id}/free`);
-            setSelectedSlot(null);
             await loadSlots();
         } catch (err) {
             setError(err.response?.data?.message || "تعذر إخلاء الموقف");
         } finally {
+            setSelectedSlot(null);
             setSubmitting(false);
         }
     };

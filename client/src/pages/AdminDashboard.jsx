@@ -32,6 +32,13 @@ const AdminDashboard = () => {
     const [deleteTarget, setDeleteTarget] = useState(null); // { type: "user" | "car", entity }
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const errorRef = useRef(null);
+
+    useEffect(() => {
+        if (error) {
+            errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, [error]);
 
     const isAdmin = user?.role === "admin";
     const currentUserId = user?._id ?? user?.id;
@@ -215,7 +222,7 @@ const AdminDashboard = () => {
             </div>
 
             {error && (
-                <p className="page-error" role="alert" aria-live="assertive">
+                <p className="page-error" role="alert" aria-live="assertive" ref={errorRef}>
                     {error}
                 </p>
             )}
