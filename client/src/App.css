@@ -120,6 +120,7 @@
 }
 
 .field-group {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -135,6 +136,18 @@
 .field-hint {
   font-size: 0.85rem;
   color: #475467;
+}
+
+/* Hints that shouldn't add extra height to their field-group (e.g. inside
+   a grid row with align-items: end), so the input stays aligned with
+   sibling inputs that have no hint. The hint floats just under the input
+   instead of pushing the box taller. */
+.field-hint--floating {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  margin-top: 0.3rem;
+  white-space: nowrap;
 }
 
 .field,
@@ -401,7 +414,7 @@
 .admin-form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: 1.75rem 1rem;
   align-items: end;
 }
 

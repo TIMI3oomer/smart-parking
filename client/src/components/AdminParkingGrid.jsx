@@ -2,7 +2,7 @@ import { useState } from "react";
 import GarageFloorPlan from "./GarageFloorPlan";
 import AdminSlotModal from "./AdminSlotModal";
 
-const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, disabled }) => {
+const AdminParkingGrid = ({ slots, cars, onAssign, onFree, disabled }) => {
     const [selectedSlot, setSelectedSlot] = useState(null);
 
     const liveSelectedSlot = selectedSlot
@@ -23,7 +23,6 @@ const AdminParkingGrid = ({ slots, cars, onAssign, onReserve, onFree, disabled }
                 disabled={disabled}
                 onClose={() => setSelectedSlot(null)}
                 onAssign={(slot, carId) => onAssign(slot, carId)}
-                onReserve={(slot) => onReserve(slot)}
                 onFree={(slot) => {
                     onFree(slot);
                     setSelectedSlot(null);

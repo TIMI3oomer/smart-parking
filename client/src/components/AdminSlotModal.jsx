@@ -10,7 +10,7 @@ const CATEGORY_LABELS = {
     ceo: "★ موقف المدير العام",
     blocking: "⚠ هذا الموقف قد يحجب موقفًا آخر",
 };
-const AdminSlotModal = ({ slot, cars, onClose, onAssign, onReserve, onFree, disabled }) => {
+const AdminSlotModal = ({ slot, cars, onClose, onAssign, onFree, disabled }) => {
     const [selectedCarId, setSelectedCarId] = useState("");
 
     if (!slot) return null;
@@ -101,9 +101,6 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onReserve, onFree, disa
                         <div className="slot-actions">
                             <button className="btn btn--primary" onClick={handleAssign} disabled={disabled || !selectedCarId}>
                                 تعيين السيارة
-                            </button>
-                            <button className="btn btn--ghost" onClick={() => onReserve(slot)} disabled={disabled}>
-                                حجز الموقف
                             </button>
                         </div>
                     </>

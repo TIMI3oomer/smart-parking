@@ -77,49 +77,6 @@ const getSlotById = async (req, res) => {
     }
 };
 
-const reserveSlot = async (req, res) => {
-    try {
-        if (!isValidId(req.params.id)) {
-            return res.status(400).json({ message: "معرف الموقف غير صالح" });
-        }
-
-        const slot = await Slot.findById(req.params.id);
-
-        if (!slot) {
-            return res.status(404).json({ message: "الموقف غير موجود" });
-        }
-
-        if (slot.status !== "empty") {
-            return res.status(400).json({ message: "الموقف غير متاح" });
-        }
-
-        if (slot.category === "ceo") {
-            return res.status(403).json({ message: CEO_SLOT_MESSAGE });
-        }
-
-        if (req.body.userId && !isValidId(req.body.userId)) {
-            return res.status(400).json({ message: "معرف المستخدم غير صالح" });
-        }
-
-        const targetUserId = req.body.userId || req.user.id;
-
-        const alreadyHasSlot = await findUserActiveSlot(targetUserId, slot._id);
-        if (alreadyHasSlot) {
-            return res.status(409).json({
-                message: `هذا المستخدم لديه موقف آخر بالفعل (${alreadyHasSlot.slotNumber}) — مستخدم واحد يمكنه شغل موقف واحد فقط`,
-            });
-        }
-
-        slot.status = "reserved";
-        slot.reservedFor = targetUserId;
-        await slot.save();
-
-        res.json(await populateSlot(Slot.findById(slot._id)));
-    } catch (error) {
-        handleServerError(res, error, "تعذر حجز الموقف");
-    }
-};
-
 const occupySlot = async (req, res) => {
     try {
         if (!isValidId(req.params.id)) {
@@ -253,7 +210,6 @@ const freeSlot = async (req, res) => {
 module.exports = {
     getAllSlots,
     getSlotById,
-    reserveSlot,
     occupySlot,
     assignCarToSlot,
     freeSlot,

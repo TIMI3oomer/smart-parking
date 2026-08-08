@@ -7,7 +7,7 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || fallback;
 
-// Slots list refetch interval so every admin sees reserve/occupy/free actions
+// Slots list refetch interval so every admin sees assign/occupy/free actions
 // made by anyone else without needing to manually reload the page.
 const LIVE_REFRESH_MS = 4000;
 
@@ -128,19 +128,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleReserve = async (slot) => {
-        setSubmitting(true);
-        setError("");
-        try {
-            await api.put(`/slot/${slot._id}/reserve`);
-            await fetchData();
-        } catch (err) {
-            setError(getErrorMessage(err, "تعذر حجز الموقف"));
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const handleFree = async (slot) => {
         if (!window.confirm(`هل تريد إخلاء الموقف ${slot.slotNumber}؟ سيتم إزالة السيارة أو الحجز المرتبط به.`)) return;
 
@@ -237,7 +224,6 @@ const AdminDashboard = () => {
                 slots={slots}
                 cars={availableCars}
                 onAssign={handleAssign}
-                onReserve={handleReserve}
                 onFree={handleFree}
                 disabled={submitting}
             />
@@ -265,7 +251,7 @@ const AdminDashboard = () => {
                             <input id="user-password" className="input" type="password" value={newPerson.password}
                                 onChange={(e) => setNewPerson((c) => ({ ...c, password: e.target.value }))}
                                 disabled={submitting} aria-describedby="user-password-hint" />
-                            <span id="user-password-hint" className="field-hint">8 أحرف على الأقل</span>
+                            <span id="user-password-hint" className="field-hint field-hint--floating">8 أحرف على الأقل</span>
                         </div>
                         <div className="field-group">
                             <label htmlFor="user-phone" className="field-label">رقم الهاتف</label>
