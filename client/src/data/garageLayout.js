@@ -14,10 +14,10 @@ export const GARAGE_POLES = [
     { id: "pole-l-2", x: 124, y: 768, width: 32, height: 32 },
     { id: "pole-l-3", x: 124, y: 993, width: 32, height: 32 },
 
-    { id: "pole-r-0", x: 649, y: 215, width: 32, height: 32 },
-    { id: "pole-r-1", x: 649, y: 440, width: 32, height: 32 },
-    { id: "pole-r-2", x: 649, y: 665, width: 32, height: 32 },
-    { id: "pole-r-3", x: 649, y: 890, width: 32, height: 32 },
+    { id: "pole-r-0", x: 649, y: 318, width: 32, height: 32 },
+    { id: "pole-r-1", x: 649, y: 543, width: 32, height: 32 },
+    { id: "pole-r-2", x: 649, y: 768, width: 32, height: 32 },
+    { id: "pole-r-3", x: 649, y: 993, width: 32, height: 32 },
 ];
 
 export const GARAGE_SLOTS = [
@@ -44,25 +44,25 @@ export const GARAGE_SLOTS = [
     { slotNumber: "E3", category: "normal", x: 75, y: 1155, width: 130, height: 55, rotation: 0 },
 
     // ---- RIGHT: J (top, nearest wall, J1 = ceo) down to F (bottom) ----
-    { slotNumber: "J1", category: "ceo", x: 600, y: 30, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "J2", category: "normal", x: 600, y: 91, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "J3", category: "normal", x: 600, y: 152, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "J1", category: "ceo", x: 600, y: 358, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "J2", category: "normal", x: 600, y: 419, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "J3", category: "normal", x: 600, y: 480, width: 130, height: 55, rotation: 0 },
 
-    { slotNumber: "I1", category: "normal", x: 600, y: 255, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "I2", category: "normal", x: 600, y: 316, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "I3", category: "normal", x: 600, y: 377, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "I1", category: "normal", x: 600, y: 583, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "I2", category: "normal", x: 600, y: 644, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "I3", category: "normal", x: 600, y: 705, width: 130, height: 55, rotation: 0 },
 
-    { slotNumber: "H1", category: "normal", x: 600, y: 480, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "H2", category: "normal", x: 600, y: 541, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "H3", category: "normal", x: 600, y: 602, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "H1", category: "normal", x: 600, y: 808, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "H2", category: "normal", x: 600, y: 869, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "H3", category: "normal", x: 600, y: 930, width: 130, height: 55, rotation: 0 },
 
-    { slotNumber: "G1", category: "normal", x: 600, y: 705, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "G2", category: "normal", x: 600, y: 766, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "G3", category: "normal", x: 600, y: 827, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "G1", category: "normal", x: 600, y: 1033, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "G2", category: "normal", x: 600, y: 1094, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "G3", category: "normal", x: 600, y: 1155, width: 130, height: 55, rotation: 0 },
 
-    { slotNumber: "F1", category: "normal", x: 600, y: 930, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "F2", category: "normal", x: 600, y: 991, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "F3", category: "normal", x: 600, y: 1052, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "F1", category: "normal", x: 600, y: 1033, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "F2", category: "normal", x: 600, y: 1094, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "F3", category: "normal", x: 600, y: 1155, width: 130, height: 55, rotation: 0 },
 
     // ---- MIDDLE: 3 cars stacked, shifted down clear of the ceo's row ----
     { slotNumber: "M1", category: "normal", x: 478, y: 252, width: 84, height: 80, rotation: 0 },
