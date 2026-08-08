@@ -1,7 +1,6 @@
-
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
-export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z";
+export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z M560,10 L572,10 L572,360 L560,360 Z";
 
 export const GARAGE_DIVIDERS = [];
 
@@ -64,14 +63,14 @@ export const GARAGE_SLOTS = [
     { slotNumber: "F2", category: "normal", x: 600, y: 1094, width: 130, height: 55, rotation: 0 },
     { slotNumber: "F3", category: "normal", x: 600, y: 1155, width: 130, height: 55, rotation: 0 },
 
-    // ---- MIDDLE: 3 cars stacked, shifted down clear of the ceo's row ----
-    { slotNumber: "M1", category: "normal", x: 478, y: 252, width: 84, height: 80, rotation: 0 },
-    { slotNumber: "M2", category: "normal", x: 478, y: 340, width: 84, height: 80, rotation: 0 },
-    { slotNumber: "M3", category: "normal", x: 478, y: 428, width: 84, height: 80, rotation: 0 },
+    // ---- MIDDLE: 3 cars stacked, tucked into the pocket to the left of the new L-wall, above J1 ----
+    { slotNumber: "M1", category: "normal", x: 460, y: 40, width: 84, height: 80, rotation: 0 },
+    { slotNumber: "M2", category: "normal", x: 460, y: 128, width: 84, height: 80, rotation: 0 },
+    { slotNumber: "M3", category: "normal", x: 460, y: 216, width: 84, height: 80, rotation: 0 },
 
-    // ---- BLOCKING column: aligned with I/H/G/F, stops before J (the ceo) ----
-    { slotNumber: "BL1", category: "blocking", x: 350, y: 255, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL2", category: "blocking", x: 350, y: 480, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL3", category: "blocking", x: 350, y: 705, width: 80, height: 177, rotation: 0 },
-    { slotNumber: "BL4", category: "blocking", x: 350, y: 930, width: 80, height: 177, rotation: 0 },
+    // ---- BLOCKING column: shifted down to clear the M/wall pocket, top row now level with B1/J1 ----
+    { slotNumber: "BL1", category: "blocking", x: 350, y: 370, width: 80, height: 177, rotation: 0 },
+    { slotNumber: "BL2", category: "blocking", x: 350, y: 595, width: 80, height: 177, rotation: 0 },
+    { slotNumber: "BL3", category: "blocking", x: 350, y: 820, width: 80, height: 177, rotation: 0 },
+    { slotNumber: "BL4", category: "blocking", x: 350, y: 1045, width: 80, height: 177, rotation: 0 },
 ];
