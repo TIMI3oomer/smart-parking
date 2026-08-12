@@ -15,6 +15,13 @@
     direction: rtl;
 }
 
+/* Below 620px, the fixed min-width above would force horizontal scrolling
+   and hide half the garage off-screen — the exact thing that makes this
+   hard to use on a phone. The floor plan's viewBox (820x1400) is already
+   portrait-shaped, so on small screens we let it scale down to the full
+   container width instead: everything fits in one glance and the only
+   scrolling left is the natural vertical kind. Text/strokes are bumped
+   below so they stay legible at the smaller scale. */
 @media (max-width: 619px) {
     .garage-plan {
         min-width: 0;
@@ -47,8 +54,8 @@
 
 .garage-plan__slot {
     cursor: pointer;
-    touch-action: manipulation; /* removes the ~300ms tap delay on mobile browsers */
-    -webkit-tap-highlight-color: transparent; /* no gray flash on tap in iOS Safari */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .garage-plan__slot:active .garage-plan__rect {
@@ -92,6 +99,21 @@
     unicode-bidi: bidi-override;
 }
 
+/* Real HTML label rendered via <foreignObject>, replacing SVG <text> for
+   Arabic content — see the comment in GarageFloorPlan.jsx for why. */
+.garage-plan__status-html {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    direction: rtl;
+    font: 700 12px/1 var(--sans, system-ui, sans-serif);
+    color: inherit;
+    text-align: center;
+    white-space: nowrap;
+}
+
 .garage-plan__car-body {
     fill: #334155;
     stroke: #1e293b;
@@ -103,11 +125,23 @@
     opacity: 0.9;
 }
 
-.garage-plan__marker text {
-    font-size: 20px;
-    font-weight: 800;
+.garage-plan__marker-html {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     direction: rtl;
-    unicode-bidi: bidi-override;
+    font: 800 20px/1 var(--sans, system-ui, sans-serif);
+    white-space: nowrap;
+}
+
+.garage-plan__marker--in .garage-plan__marker-html {
+    color: #fff;
+}
+
+.garage-plan__marker--out .garage-plan__marker-html {
+    color: #fff;
 }
 
 .garage-plan__marker--in rect {
@@ -195,7 +229,7 @@
         font-size: 26px;
     }
 
-    .garage-plan__status {
+    .garage-plan__status-html {
         font-size: 20px;
     }
 
@@ -208,7 +242,7 @@
         font-size: 16px;
     }
 
-    .garage-plan__marker text {
+    .garage-plan__marker-html {
         font-size: 26px;
     }
 }

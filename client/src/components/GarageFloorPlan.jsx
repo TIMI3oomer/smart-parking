@@ -141,9 +141,26 @@ const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
                             {status === "occupied" ? (
                                 <CarIcon x={geo.x} y={geo.y} width={geo.width} height={geo.height} />
                             ) : (
-                                <text x={cx} y={cy + 6} textAnchor="middle" className="garage-plan__status">
-                                    {STATUS_LABEL[status] || status}
-                                </text>
+                                // Rendered as real HTML (via foreignObject) instead of
+                                // SVG <text>. Safari's SVG text renderer doesn't reliably
+                                // run full Arabic letter-shaping (joining initial/medial/
+                                // final forms), which made شاغر/محجوز/مشغول render
+                                // garbled on iPhone. HTML text layout always shapes and
+                                // orders Arabic correctly, so we use that instead.
+                                <foreignObject
+                                    x={geo.x}
+                                    y={cy - 11}
+                                    width={geo.width}
+                                    height={22}
+                                    style={{ pointerEvents: "none", overflow: "visible" }}
+                                >
+                                    <div
+                                        xmlns="http://www.w3.org/1999/xhtml"
+                                        className="garage-plan__status-html"
+                                    >
+                                        {STATUS_LABEL[status] || status}
+                                    </div>
+                                </foreignObject>
                             )}
                             {badge && (
                                 <>
@@ -165,7 +182,11 @@ const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
 
                 <g className="garage-plan__marker garage-plan__marker--in">
                     <rect x="322" y="-72" width="160" height="34" rx="17" />
-                    <text x="402" y="-49" textAnchor="middle">⬇ مدخل</text>
+                    <foreignObject x="322" y="-72" width="160" height="34" style={{ pointerEvents: "none", overflow: "visible" }}>
+                        <div xmlns="http://www.w3.org/1999/xhtml" className="garage-plan__marker-html">
+                            ⬇ مدخل
+                        </div>
+                    </foreignObject>
                 </g>
             </svg>
         </div>
