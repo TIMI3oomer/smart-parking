@@ -21,7 +21,7 @@ const handleServerError = (res, error, fallback = "حدث خطأ ما") => {
 
 const getAllCars = async (req, res) => {
     try {
-        const cars = await Car.find().populate("owner", "name Phone");
+        const cars = await Car.find().populate("owner", "name phone");
         res.json(cars);
     } catch (error) {
         handleServerError(res, error, "تعذر تحميل السيارات");
@@ -30,7 +30,7 @@ const getAllCars = async (req, res) => {
 
 const getCarByPlate = async (req, res) => {
     try {
-        const car = await Car.findOne({ plate: req.params.plate }).populate("owner", "name Phone");
+        const car = await Car.findOne({ plate: req.params.plate }).populate("owner", "name phone");
         if (!car) {
             return res.status(404).json({ message: "السيارة غير موجودة" });
         }
@@ -73,7 +73,7 @@ const createCar = async (req, res) => {
         await car.save();
         await User.findByIdAndUpdate(owner, { car: car._id });
 
-        const populated = await car.populate("owner", "name Phone");
+        const populated = await car.populate("owner", "name phone");
         res.status(201).json(populated);
     } catch (error) {
         handleServerError(res, error, "تعذر إنشاء السيارة");
@@ -124,7 +124,7 @@ const updateCar = async (req, res) => {
         const car = await Car.findByIdAndUpdate(req.params.id, update, {
             new: true,
             runValidators: true,
-        }).populate("owner", "name Phone");
+        }).populate("owner", "name phone");
 
         if (!car) {
             return res.status(404).json({ message: "السيارة غير موجودة" });

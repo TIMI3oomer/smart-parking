@@ -15,13 +15,6 @@
     direction: rtl;
 }
 
-/* Below 620px, the fixed min-width above would force horizontal scrolling
-   and hide half the garage off-screen — the exact thing that makes this
-   hard to use on a phone. The floor plan's viewBox (820x1400) is already
-   portrait-shaped, so on small screens we let it scale down to the full
-   container width instead: everything fits in one glance and the only
-   scrolling left is the natural vertical kind. Text/strokes are bumped
-   below so they stay legible at the smaller scale. */
 @media (max-width: 619px) {
     .garage-plan {
         min-width: 0;

@@ -47,9 +47,9 @@ const populateSlot = (query) =>
     query
         .populate({
             path: "currentCar",
-            populate: { path: "owner", select: "name Phone" },
+            populate: { path: "owner", select: "name phone" },
         })
-        .populate("reservedFor", "name Phone");
+        .populate("reservedFor", "name phone");
 
 const getAllSlots = async (req, res) => {
     try {
