@@ -16,6 +16,11 @@
 
 .garage-plan__walls {
     fill: #e2e8f0;
+    fill-rule: evenodd;
+}
+
+.garage-plan__walls-outline {
+    fill: none;
     stroke: #dc2626;
     stroke-width: 6;
     stroke-linejoin: round;

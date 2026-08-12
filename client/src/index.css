@@ -66,6 +66,8 @@
 
 body {
   margin: 0;
+  direction: rtl;
+  text-align: right;
 }
 
 #root {
@@ -76,6 +78,13 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  direction: rtl;
+  
+}
+input,select,textarea {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
 }
 
 h1,

@@ -1,8 +1,10 @@
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
-export const GARAGE_WALLS = "M40,10 L40,1240 L765,1240 L765,10 Z M560,10 L572,10 L572,326 L765,326 L765,350 L560,350 Z";
+export const GARAGE_WALLS = "M40,10 H765 V1240 H40 Z M560,10 H765 V350 H560 Z";
+export const GARAGE_WALL_OUTLINE = "M40,10 L40,1240 L765,1240 L765,10 Z";
 
 export const GARAGE_DIVIDERS = [];
+
 
 export const GARAGE_POLES = [
     { id: "pole-l-top", x: 124, y: 93, width: 32, height: 32 },
