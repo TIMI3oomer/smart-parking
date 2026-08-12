@@ -13,6 +13,7 @@ const { requireAdmin } = require("../middleware/roleMiddleware");
 const { requireOfficeNetwork } = require("../middleware/officeNetworkMiddleware");
 
 router.get("/", protect, getAllSlots);
+router.get("/network-check", protect, debugNetworkStatus); // TEMPORARY — remove after debugging
 router.get("/:id", protect, getSlotById);
 
 router.put("/:id/occupy", protect, requireOfficeNetwork, occupySlot);
