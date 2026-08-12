@@ -19,6 +19,8 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onFree, disabled }) => 
     const isOccupied = status === "occupied";
     const isReserved = status === "reserved";
     const car = slot.currentCar;
+    const carOwnerPhone = car?.owner?.phone ?? car?.owner?.Phone;
+    const reservedUserPhone = slot.reservedFor?.phone ?? slot.reservedFor?.Phone;
     const categoryLabel = CATEGORY_LABELS[slot.category];
     const isCeoSlot = slot.category === "ceo";
 
@@ -42,9 +44,9 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onFree, disabled }) => 
                         <p className="slot-modal__section"><strong>السيارة:</strong> {car.model} ({car.color})</p>
                         <p className="slot-modal__section"><strong>اللوحة:</strong> {car.plate}</p>
                         <p className="slot-modal__section"><strong>المالك:</strong> {car.owner?.name}</p>
-                        {car.owner?.Phone && (
+                        {carOwnerPhone && (
                             <p className="slot-modal__section">
-                                <strong>الهاتف:</strong> <a href={`tel:${car.owner.Phone}`}>{car.owner.Phone}</a>
+                                <strong>الهاتف:</strong> <a href={`tel:${carOwnerPhone}`}>{carOwnerPhone}</a>
                             </p>
                         )}
                         <div className="slot-actions">
@@ -57,6 +59,11 @@ const AdminSlotModal = ({ slot, cars, onClose, onAssign, onFree, disabled }) => 
                     <>
                         {slot.reservedFor?.name && (
                             <p className="slot-modal__section"><strong>محجوز لـ:</strong> {slot.reservedFor.name}</p>
+                        )}
+                        {reservedUserPhone && (
+                            <p className="slot-modal__section">
+                                <strong>الهاتف:</strong> <a href={`tel:${reservedUserPhone}`}>{reservedUserPhone}</a>
+                            </p>
                         )}
                         <div className="field-group">
                             <label htmlFor="assign-car" className="field-label">تعيين سيارة لهذا الموقف</label>

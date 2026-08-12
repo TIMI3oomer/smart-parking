@@ -19,6 +19,8 @@ const CarInfo = ({ slot, onClose, onOccupy, onFree, currentUserId, disabled }) =
     if (!slot) return null;
 
     const car = slot.currentCar;
+    const carOwnerPhone = car?.owner?.phone;
+    const reservedUserPhone = slot.reservedFor?.phone;
     const isMine =
         matchesCurrentUser(car?.owner, currentUserId) ||
         matchesCurrentUser(slot.reservedFor, currentUserId);
@@ -38,16 +40,30 @@ const CarInfo = ({ slot, onClose, onOccupy, onFree, currentUserId, disabled }) =
                         <p className="slot-modal__section"><strong>السيارة:</strong> {car.model} ({car.color})</p>
                         <p className="slot-modal__section"><strong>اللوحة:</strong> {car.plate}</p>
                         <p className="slot-modal__section"><strong>المالك:</strong> {car.owner?.name}</p>
-                        {car.owner?.Phone && (
+                        {carOwnerPhone && (
                             <p className="slot-modal__section">
-                                <strong>الهاتف:</strong> <a href={`tel:${car.owner.Phone}`}>{car.owner.Phone}</a>
+                                <strong>الهاتف:</strong> <a href={`tel:${carOwnerPhone}`}>{carOwnerPhone}</a>
                             </p>
                         )}
                     </>
                 ) : slot.status === "reserved" && slot.reservedFor ? (
-                    <p className="slot-modal__section"><strong>محجوز لـ:</strong> {slot.reservedFor.name}</p>
+                    <>
+                        <p className="slot-modal__section"><strong>محجوز لـ:</strong> {slot.reservedFor.name}</p>
+                        {reservedUserPhone && (
+                            <p className="slot-modal__section">
+                                <strong>الهاتف:</strong> <a href={`tel:${reservedUserPhone}`}>{reservedUserPhone}</a>
+                            </p>
+                        )}
+                    </>
                 ) : slot.status === "occupied" && slot.reservedFor ? (
-                    <p className="slot-modal__section"><strong>مشغول بواسطة:</strong> {slot.reservedFor.name}</p>
+                    <>
+                        <p className="slot-modal__section"><strong>مشغول بواسطة:</strong> {slot.reservedFor.name}</p>
+                        {reservedUserPhone && (
+                            <p className="slot-modal__section">
+                                <strong>الهاتف:</strong> <a href={`tel:${reservedUserPhone}`}>{reservedUserPhone}</a>
+                            </p>
+                        )}
+                    </>
                 ) : (
                     <p className="slot-modal__section">هذا الموقف شاغر.</p>
                 )}
