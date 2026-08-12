@@ -88,6 +88,8 @@
     font-size: 12px;
     font-weight: 700;
     fill: currentColor;
+    direction: rtl;
+    unicode-bidi: bidi-override;
 }
 
 .garage-plan__car-body {
@@ -104,6 +106,8 @@
 .garage-plan__marker text {
     font-size: 20px;
     font-weight: 800;
+    direction: rtl;
+    unicode-bidi: bidi-override;
 }
 
 .garage-plan__marker--in rect {
