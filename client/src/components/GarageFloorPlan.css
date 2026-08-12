@@ -14,17 +14,11 @@
     height: auto;
 }
 
-.garage-plan__walls {
-    fill: #e2e8f0;
-    fill-rule: evenodd;
-}
-
-.garage-plan__walls-outline {
-    fill: none;
+.garage-plan__wall {
     stroke: #dc2626;
     stroke-width: 6;
-    stroke-linejoin: round;
     stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .garage-plan__divider {

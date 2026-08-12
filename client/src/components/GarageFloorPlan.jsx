@@ -1,4 +1,10 @@
-import { GARAGE_VIEWBOX, GARAGE_WALLS, GARAGE_WALL_OUTLINE, GARAGE_DIVIDERS, GARAGE_POLES, GARAGE_SLOTS } from "../data/garageLayout";
+import {
+    GARAGE_VIEWBOX,
+    GARAGE_WALL_PATHS,
+    GARAGE_DIVIDERS,
+    GARAGE_POLES,
+    GARAGE_SLOTS,
+} from "../data/garageLayout";
 import "./GarageFloorPlan.css";
 
 const STATUS_CLASS = {
@@ -68,8 +74,15 @@ const GarageFloorPlan = ({ slots, onSlotClick, emptyMessage }) => {
                 aria-label="مخطط الكراج من الأعلى"
                 preserveAspectRatio="xMidYMid meet"
             >
-                <path className="garage-plan__walls" d={GARAGE_WALLS}  fillRule="evenodd"/>
-                <path className="garage-plan__walls-outline" d={GARAGE_WALL_OUTLINE} />
+                {GARAGE_WALL_PATHS.map((d, index) => (
+                    <path
+                        key={`${index}-${d}`}
+                        d={d}
+                        className="garage-plan__wall"
+                        fill="none"
+                        aria-hidden="true"
+                    />
+                ))}
 
                 {GARAGE_DIVIDERS.map((d) => (
                     <line

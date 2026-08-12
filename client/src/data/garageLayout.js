@@ -1,10 +1,14 @@
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
-export const GARAGE_WALLS = "M40,10 H765 V1240 H40 Z M560,10 H765 V430 H560 Z";
-
-export const GARAGE_WALL_DOORS = [
-    { id: "main-gate", x: 210, y: 10, width: 320, height: 34, rx: 10 },
-    { id: "l-service-door", x: 540, y: 188, width: 34, height: 74, rx: 8 },
+export const GARAGE_WALL_PATHS = [
+    "M40,10 V1240",
+    "M40,1240 H765",
+    "M765,10 V1240",
+    "M40,10 H180",
+    "M305,10 H560",
+    "M560,10 V110",
+    "M560,180 V326",
+    "M560,326 H765",
 ];
 
 export const GARAGE_DIVIDERS = [];
