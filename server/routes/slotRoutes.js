@@ -10,9 +10,10 @@ const {
 } = require("../controllers/slotController");
 const { protect } = require("../middleware/authMiddleware");
 const { requireAdmin } = require("../middleware/roleMiddleware");
-const { requireOfficeNetwork } = require("../middleware/officeNetworkMiddleware");
+const { requireOfficeNetwork, debugNetworkStatus } = require("../middleware/officeNetworkMiddleware");
 
 router.get("/", protect, getAllSlots);
+router.get("/network-check", protect, debugNetworkStatus); // TEMPORARY — remove after debugging
 router.get("/:id", protect, getSlotById);
 
 router.put("/:id/occupy", protect, requireOfficeNetwork, occupySlot);
