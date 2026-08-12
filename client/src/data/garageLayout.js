@@ -3,12 +3,12 @@ export const GARAGE_VIEWBOX = "0 -90 820 1400";
 export const GARAGE_WALL_PATHS = [
   "M40,10 V1240",
   "M40,1240 H765",
-  "M765,326 V1240",
+  "M765,400 V1240",
   "M40,10 H180",
   "M305,10 H560",
   "M560,10 V110",
-  "M560,180 V326",
-  "M560,326 H765",
+  "M560,180 V400",
+  "M560,400 H765",
 ];
 export const GARAGE_DIVIDERS = [];
 
@@ -50,7 +50,7 @@ export const GARAGE_SLOTS = [
     { slotNumber: "E3", category: "normal", x: 75, y: 1155, width: 130, height: 55, rotation: 0 },
 
     // ---- RIGHT: J (top, nearest wall, J1 = ceo) down to F (bottom) ----
-    { slotNumber: "J1", category: "ceo", x: 600, y: 422, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "J1", category: "ceo", x: 600, y: 413, width: 130, height: 55, rotation: 0 },
     { slotNumber: "J2", category: "normal", x: 600, y: 480, width: 130, height: 55, rotation: 0 },
 
     { slotNumber: "I1", category: "normal", x: 600, y: 583, width: 130, height: 55, rotation: 0 },
