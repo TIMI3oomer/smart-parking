@@ -14,6 +14,12 @@
     height: auto;
 }
 
+@media (max-width: 619px) {
+    .garage-plan {
+        min-width: 0;
+    }
+}
+
 .garage-plan__wall {
     stroke: #dc2626;
     stroke-width: 6;
@@ -40,6 +46,12 @@
 
 .garage-plan__slot {
     cursor: pointer;
+    touch-action: manipulation; /* removes the ~300ms tap delay on mobile browsers */
+    -webkit-tap-highlight-color: transparent; /* no gray flash on tap in iOS Safari */
+}
+
+.garage-plan__slot:active .garage-plan__rect {
+    filter: brightness(0.94);
 }
 
 .garage-plan__rect {
@@ -150,7 +162,48 @@
 
 @media (max-width: 640px) {
     .garage-plan-wrapper {
-        padding: 0.5rem;
+        padding: 0.4rem;
         border-radius: 16px;
+    }
+
+    .garage-plan__wall {
+        stroke-width: 8;
+    }
+
+    .garage-plan__divider {
+        stroke-width: 3;
+    }
+
+    .garage-plan__pole-hatch {
+        stroke-width: 2;
+    }
+
+    .garage-plan__rect {
+        stroke-width: 4;
+    }
+
+    .garage-plan__paint {
+        stroke-width: 3;
+    }
+
+    .garage-plan__number {
+        font-size: 26px;
+    }
+
+    .garage-plan__status {
+        font-size: 20px;
+    }
+
+    .garage-plan__badge {
+        r: 14;
+        stroke-width: 3;
+    }
+
+    .garage-plan__badge-icon {
+        font-size: 16px;
+    }
+
+    .garage-plan__marker text {
+        font-size: 26px;
     }
 }
