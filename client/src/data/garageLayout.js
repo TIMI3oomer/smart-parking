@@ -3,7 +3,7 @@ export const GARAGE_VIEWBOX = "0 -90 820 1400";
 export const GARAGE_WALL_PATHS = [
   "M40,10 V1240",
   "M40,1240 H765",
-  "M765,10 V1000",
+  "M765,10 V1240",
   "M40,10 H180",
   "M305,10 H560",
   "M560,10 V110",
