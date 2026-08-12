@@ -70,9 +70,9 @@ export const GARAGE_SLOTS = [
     { slotNumber: "F3", category: "normal", x: 600, y: 1155, width: 130, height: 55, rotation: 0 },
 
     // ---- MIDDLE: 3 cars stacked, tucked into the pocket to the left of the new L-wall, above J1 ----
-    { slotNumber: "M1", category: "normal", x: 460, y: 40, width: 84, height: 80, rotation: 0 },
-    { slotNumber: "M2", category: "normal", x: 460, y: 128, width: 84, height: 80, rotation: 0 },
-    { slotNumber: "M3", category: "normal", x: 460, y: 216, width: 84, height: 80, rotation: 0 },
+    { slotNumber: "M1", category: "normal", x: 460, y: 30, width: 84, height: 80, rotation: 0 },
+    { slotNumber: "M2", category: "normal", x: 460, y: 160, width: 84, height: 80, rotation: 0 },
+    { slotNumber: "M3", category: "normal", x: 460, y: 267, width: 84, height: 80, rotation: 0 },
 
     // ---- BLOCKING column: shifted further right, still clear of J1's row ----
     { slotNumber: "BL1", category: "blocking", x: 430, y: 550, width: 80, height: 160, rotation: 0 },
