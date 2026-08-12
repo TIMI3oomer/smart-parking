@@ -50,7 +50,7 @@ export const GARAGE_SLOTS = [
     { slotNumber: "E3", category: "normal", x: 75, y: 1155, width: 130, height: 55, rotation: 0 },
 
     // ---- RIGHT: J (top, nearest wall, J1 = ceo) down to F (bottom) ----
-    { slotNumber: "J1", category: "ceo", x: 600, y: 390, width: 130, height: 55, rotation: 0 },
+    { slotNumber: "J1", category: "ceo", x: 600, y: 422, width: 130, height: 55, rotation: 0 },
     { slotNumber: "J2", category: "normal", x: 600, y: 480, width: 130, height: 55, rotation: 0 },
 
     { slotNumber: "I1", category: "normal", x: 600, y: 583, width: 130, height: 55, rotation: 0 },
