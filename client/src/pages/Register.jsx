@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import api from "../service/api";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -18,13 +19,78 @@ const Register = () => {
     });
 
     const [error, setError] = useState("");
+    const [info, setInfo] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [sendingCode, setSendingCode] = useState(false);
+    const [verifyingCode, setVerifyingCode] = useState(false);
+    const [phoneCode, setPhoneCode] = useState("");
+    const [phoneVerified, setPhoneVerified] = useState(false);
+    const [codeRequested, setCodeRequested] = useState(false);
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
         setForm({
             ...form,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
+
+        if (name === "phone") {
+            setPhoneVerified(false);
+            setCodeRequested(false);
+            setPhoneCode("");
+            setInfo("");
+        }
+    };
+
+    const handleSendPhoneCode = async () => {
+        const phone = form.phone.trim();
+        if (!phone) {
+            setError("يرجى إدخال رقم الهاتف أولًا");
+            return;
+        }
+
+        setSendingCode(true);
+        setError("");
+        setInfo("");
+
+        try {
+            const res = await api.post("/auth/register/request-phone-verification", { phone });
+            setCodeRequested(true);
+            if (res.data?.devCode) {
+                setInfo(`تم إرسال الرمز. (بيئة تطوير) رمز التحقق: ${res.data.devCode}`);
+            } else {
+                setInfo("تم إرسال رمز التحقق عبر رسالة نصية.");
+            }
+        } catch (err) {
+            setError(err?.response?.data?.message || "تعذر إرسال رمز التحقق");
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
+    const handleVerifyPhoneCode = async () => {
+        const phone = form.phone.trim();
+        const code = phoneCode.trim();
+
+        if (!phone || !code) {
+            setError("يرجى إدخال رقم الهاتف ورمز التحقق");
+            return;
+        }
+
+        setVerifyingCode(true);
+        setError("");
+        setInfo("");
+
+        try {
+            await api.post("/auth/register/verify-phone", { phone, code });
+            setPhoneVerified(true);
+            setInfo("تم التحقق من رقم الهاتف بنجاح.");
+        } catch (err) {
+            setPhoneVerified(false);
+            setError(err?.response?.data?.message || "فشل التحقق من رمز الهاتف");
+        } finally {
+            setVerifyingCode(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -52,8 +118,14 @@ const Register = () => {
             return;
         }
 
+        if (!phoneVerified) {
+            setError("يرجى التحقق من رقم الهاتف قبل إنشاء الحساب");
+            return;
+        }
+
         setSubmitting(true);
         setError("");
+        setInfo("");
 
         try {
             await register({
@@ -85,6 +157,11 @@ const Register = () => {
                 {error && (
                     <p className="page-error" role="alert" aria-live="assertive">
                         {error}
+                    </p>
+                )}
+                {info && (
+                    <p className="page-subtitle" role="status" aria-live="polite">
+                        {info}
                     </p>
                 )}
 
@@ -132,7 +209,47 @@ const Register = () => {
                             disabled={submitting}
                             autoComplete="tel"
                         />
+                        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={handleSendPhoneCode}
+                                disabled={submitting || sendingCode || verifyingCode || phoneVerified}
+                            >
+                                {sendingCode ? "جارٍ إرسال الرمز…" : "إرسال رمز التحقق"}
+                            </button>
+                            {phoneVerified && (
+                                <span className="field-hint" style={{ color: "green", alignSelf: "center" }}>
+                                    تم التحقق من الرقم
+                                </span>
+                            )}
+                        </div>
                     </div>
+
+                    {codeRequested && !phoneVerified && (
+                        <div className="field-group">
+                            <label htmlFor="phoneCode" className="field-label">رمز التحقق</label>
+                            <input
+                                id="phoneCode"
+                                type="text"
+                                name="phoneCode"
+                                className="input"
+                                placeholder="أدخل رمز التحقق المرسل"
+                                value={phoneCode}
+                                onChange={(e) => setPhoneCode(e.target.value)}
+                                disabled={submitting || verifyingCode}
+                            />
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={handleVerifyPhoneCode}
+                                disabled={submitting || verifyingCode || !phoneCode.trim()}
+                                style={{ marginTop: "0.5rem" }}
+                            >
+                                {verifyingCode ? "جارٍ التحقق…" : "تأكيد رمز التحقق"}
+                            </button>
+                        </div>
+                    )}
 
                     <div className="field-group">
                         <label htmlFor="password" className="field-label">كلمة المرور</label>
