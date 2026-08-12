@@ -1,10 +1,13 @@
 export const GARAGE_VIEWBOX = "0 -90 820 1400";
 
-export const GARAGE_WALLS = "M40,10 H765 V1240 H40 Z M560,10 H765 V350 H560 Z";
-export const GARAGE_WALL_OUTLINE = "M40,10 L40,1240 L765,1240 L765,10 Z";
+export const GARAGE_WALLS = "M40,10 H765 V1240 H40 Z M560,10 H765 V430 H560 Z";
+
+export const GARAGE_WALL_DOORS = [
+    { id: "main-gate", x: 210, y: 10, width: 320, height: 34, rx: 10 },
+    { id: "l-service-door", x: 540, y: 188, width: 34, height: 74, rx: 8 },
+];
 
 export const GARAGE_DIVIDERS = [];
-
 
 export const GARAGE_POLES = [
     { id: "pole-l-top", x: 124, y: 93, width: 32, height: 32 },
@@ -46,7 +49,6 @@ export const GARAGE_SLOTS = [
     // ---- RIGHT: J (top, nearest wall, J1 = ceo) down to F (bottom) ----
     { slotNumber: "J1", category: "ceo", x: 600, y: 358, width: 130, height: 55, rotation: 0 },
     { slotNumber: "J2", category: "normal", x: 600, y: 419, width: 130, height: 55, rotation: 0 },
-    { slotNumber: "J3", category: "normal", x: 600, y: 480, width: 130, height: 55, rotation: 0 },
 
     { slotNumber: "I1", category: "normal", x: 600, y: 583, width: 130, height: 55, rotation: 0 },
     { slotNumber: "I2", category: "normal", x: 600, y: 644, width: 130, height: 55, rotation: 0 },
