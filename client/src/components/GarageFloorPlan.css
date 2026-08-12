@@ -12,6 +12,7 @@
     width: 100%;
     min-width: 620px;
     height: auto;
+    direction: rtl;
 }
 
 @media (max-width: 619px) {
