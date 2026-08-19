@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 
 const ADMIN = {
-    name: "Admin",
-    email: "admin@example.com",
+    name: "Salah",
+    email: "Salah@example.com",
     password: "Admin123", // change before running
     phone: "0000000000",
 };
