@@ -4,7 +4,7 @@ const User = require("../models/User");
 const Car = require("../models/Car");
 
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
+const LOCK_TIME_MS = 5 * 60 * 1000; // 5 minutes
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DUMMY_HASH = "$2b$10$CwTycUXWue0Thq9StjUM0uJ8j8ZQvPT6c1YyfiV0nY8v2pxL7z9Sq";
@@ -149,7 +149,7 @@ const login = async (req, res) => {
                 user.failedLoginAttempts = 0;
                 await user.save();
                 return res.status(423).json({
-                    message: "تم قفل الحساب مؤقتًا لمدة 15 دقيقة بسبب محاولات دخول خاطئة متكررة",
+                    message: "تم قفل الحساب مؤقتًا لمدة 5 دقيقة بسبب محاولات دخول خاطئة متكررة",
                 });
             }
 
