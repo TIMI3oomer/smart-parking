@@ -13,8 +13,6 @@ const register = async (req, res) => {
     try {
         const { name, email, password, phone, carModel, carPlate, carColor } = req.body;
 
-        // Each employee is assumed to own exactly one car, so its info is
-        // collected up front at sign-up rather than added later.
         if (!name || !email || !password || !phone || !carModel || !carPlate) {
             return res.status(400).json({
                 message: "يرجى تعبئة جميع الحقول المطلوبة، بما في ذلك بيانات السيارة (الطراز ورقم اللوحة)",
